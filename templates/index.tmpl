@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+<body>
+
+<h1>Rebalancer</h1>
+
+<form action="/result" method="post" enctype="multipart/form-data">
+  <p>
+    <label for="upload">Select a file: </label>
+    <input type="file" name="upload" />
+  </p>
+  <p>
+    <label for="user_token">Token: </label>
+    <input type="text" name="user_token" />
+  </p>
+  <p>
+    <select name="rebalance_mode">
+      <option value="NO_SELL">Rebalance without selling</option>
+      <option value="FULL">Rebalance everything</option>
+      <option value="NO_SELL_TAXABLE">Rebalance without selling in Taxable</option>
+    </select>
+  </p>
+  <p>
+    <label for="taxable_credit">Credit to taxable account: </label>
+    <input type="number" step=".01" name="taxable_credit" />
+  </p>
+  <p>
+    <label for="tax_deferred_credit">Credit to tax-deferred account: </label>
+    <input type="number" step=".01" name="tax_deferred_credit" />
+  </p>
+  <input type="submit" value="Rebalance" />
+</form>
+
+</body>
+</html>

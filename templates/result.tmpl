@@ -1,0 +1,55 @@
+
+<%
+from decimal import Decimal
+from rebalance import *
+session = Session(user_token, portfolio_file, taxable_credit, tax_deferred_credit)
+
+portfolio = session.get_portfolio()
+rebalancer = session.get_rebalancer()
+account_target = session.get_account_target()
+
+targets_by_tax_group = rebalancer.compute_target_asset_values(portfolio, rebalance_mode)
+portfolio_transactions = portfolio.get_transactions_to_match_target(targets_by_tax_group)
+
+total_value = portfolio.current_value()
+target_values = account_target.get_target_asset_values(portfolio)
+target_percentages = account_target.get_target_asset_percentages()
+
+new_portfolio = portfolio.copy_with_transactions_applied(portfolio_transactions)
+%>
+
+<!DOCTYPE html>
+
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+<title>Rebalance Results</title>
+<body>
+
+<h1>Transactions</h1>
+
+%include('templates/transactions.tmpl', transaction_groups=portfolio_transactions)
+
+<h1>New Portfolio Composition</h1>
+
+%include('templates/portfolio.tmpl', portfolio=new_portfolio)
+
+% for (tax_status, assets) in new_portfolio.assets_by_tax_status().items():
+%     tax_group_targets = targets_by_tax_group[tax_status]
+
+<h2>{{tax_status}}</h2>
+
+%     include('templates/portfolio.tmpl', portfolio=assets, target_values=None, target_percentages=None)
+% end
+
+<h1>Current Portfolio Composition</h1>
+
+% include('templates/portfolio.tmpl', portfolio=portfolio)
+
+</body>
+</html>

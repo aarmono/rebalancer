@@ -1,0 +1,76 @@
+
+%from rebalancer import to_dollars
+
+<%
+for account_group in transaction_groups.values():
+for (account, transactions) in filter(lambda x: len(x[1]) > 0, account_group.items()):
+%>
+
+<h2>{{account}}:</h2>
+
+<%
+sell_transactions = list(filter(lambda x: x.transaction_type() == Transaction.SELL, transactions))
+buy_transactions = list(filter(lambda x: x.transaction_type() == Transaction.BUY, transactions))
+%>
+
+%if len(sell_transactions) > 0:
+<h3>Sell the following shares</h3>
+<table>
+  <tr>
+    <th>Symbol</td>
+    <th>Total Value</th>
+    <th>Shares</th>
+    <th>Share Price</th>
+  </tr>
+<%
+sale_total = Decimal(0.0)
+for transaction in sell_transactions:
+symbol = transaction.symbol()
+shares = transaction.shares()
+sell_price = transaction.cost_per_share()
+sale_value = transaction.amount()
+sale_total += transaction.amount()
+%>
+  <tr>
+    <td>{{symbol}}</td>
+    <td>{{to_dollars(sale_value)}}</td>
+    <td>{{shares if shares is not None else ''}}</td>
+    <td>{{to_dollars(sell_price) if sell_price is not None else ''}}</td>
+</tr>
+%end
+</table>
+<p>Sale Total: {{to_dollars(sale_total)}}</p>
+%end
+
+%if len(buy_transactions) > 0:
+<h3>Buy the following shares</h3>
+<table>
+  <tr>
+    <th>Symbol</td>
+    <th>Total Value</th>
+    <th>Shares</th>
+    <th>Share Price</th>
+  </tr>
+<%
+purchase_total = Decimal(0.0)
+for transaction in buy_transactions:
+symbol = transaction.symbol()
+shares = transaction.shares()
+sell_price = transaction.cost_per_share()
+sale_value = transaction.amount()
+purchase_total += transaction.amount()
+%>
+  <tr>
+    <td>{{symbol}}</td>
+    <td>{{to_dollars(sale_value)}}</td>
+    <td>{{shares if shares is not None else ''}}</td>
+    <td>{{to_dollars(sell_price) if sell_price is not None else ''}}</td>
+  </tr>
+%end
+</table>
+<p>Purchase Total: {{to_dollars(purchase_total)}}</p>
+%end
+
+%end
+%end
+
