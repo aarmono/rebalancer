@@ -1,20 +1,16 @@
 #!/usr/bin/env python3
-from csv import DictReader
-from collections import defaultdict
+from collections import OrderedDict
 
-from rebalancer import hash_account_name, hash_user_token, encrypt_account_description, get_token_from_file, Database
+from rebalancer import hash_account_name, hash_user_token, encrypt_account_description, get_token_from_file, Database, parse_file
 
-def parse_file(filename):
-    accounts = defaultdict(list)
+def parse_file_to_dict(filename):
+    accounts = OrderedDict()
+    for entry in parse_file(filename):
+        if entry.account_name not in accounts:
+            accounts[entry.account_name] = []
+            accounts.move_to_end(entry.account_name)
 
-    with open(filename, "r") as f:
-        r = DictReader(f)
-        for row in r:
-            symbol = row["Symbol"]
-            description = row["Description"]
-            account = row["Account Name/Number"]
-            if len(symbol) > 0 and len(account) > 0:
-                accounts[account].append((symbol, description))
+        accounts[entry.account_name].append((entry.symbol, entry.description))
 
     return accounts
 
@@ -25,7 +21,7 @@ def main():
     user_token = get_token_from_file()
     user_hash = hash_user_token(user_token)
 
-    accounts = parse_file(sys.argv[1])
+    accounts = parse_file_to_dict(sys.argv[1])
 
     with Database() as db:
         salt = db.get_user_salt(user_hash = user_hash)

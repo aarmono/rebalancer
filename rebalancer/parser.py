@@ -21,12 +21,13 @@ def parse_file(file):
 
 def parse_file_object(file):
     AccountEntry = namedtuple('AccountEntry',
-                              'account_name symbol share_price current_value, is_sweep')
+                              'account_name symbol share_price current_value is_sweep description')
     ret = []
     r = DictReader(file)
     for row in r:
         symbol = row["Symbol"]
         account = row["Account Name/Number"]
+        description = row["Description"]
         if len(symbol) > 0:
             sweep = is_sweep(symbol)
             symbol = symbol.replace('*', '')
@@ -35,7 +36,12 @@ def parse_file_object(file):
             current_value = None
             current_value = parse_dollar_column(row["Current Value"])
 
-            entry = AccountEntry(account, symbol, cost_per_share, current_value, sweep)
+            entry = AccountEntry(account,
+                                 symbol,
+                                 cost_per_share,
+                                 current_value,
+                                 sweep,
+                                 description)
 
             ret.append(entry)
 
