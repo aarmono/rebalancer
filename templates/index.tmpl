@@ -49,5 +49,20 @@ table, th, td {
   <input type="submit" value="Assign Asset Affinity" />
 </form>
 
+<h1>Add Accounts</h1>
+<form action="/account_config" method="post" enctype="multipart/form-data">
+  <p>
+    <label for="upload">Select a file: </label>
+    <input type="file" name="upload" />
+  </p>
+  <p>
+    <label for="user_token">Token: </label>
+    <input type="text" name="user_token" />
+  </p>
+  <p>
+    <input type="submit" value="Rebalance" />
+  </p>
+</form>
+
 </body>
 </html>

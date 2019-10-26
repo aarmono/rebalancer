@@ -53,7 +53,7 @@ def asset_affinity_show():
                     user_token=token)
 
 @route('/asset_affinity/update', method='POST')
-def asset_affinity_show():
+def asset_affinity_update():
     token = request.forms.get('user_token')
 
     with Database() as db:
@@ -78,6 +78,17 @@ def asset_affinity_show():
     return template('templates/asset_config.tmpl',
                     user_token=token)
 
+@route('/account_config', method='POST')
+def account_config_show():
+    token = request.forms.get('user_token')
+    upload = request.files.get('upload')
+    name, ext = os.path.splitext(upload.filename)
+    if ext not in ('.csv'):
+        return 'File extension not allowed.'
+
+    return template('templates/account_config.tmpl',
+                    user_token=token,
+                    portfolio_file=upload.file)
 
 run(host='localhost', port=8090, debug=True)
 
