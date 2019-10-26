@@ -29,6 +29,7 @@ AssetTarget = namedtuple('AssetTarget', 'asset target_deci_percent')
 AssetTaxGroup = namedtuple('AssetTaxGroup', 'asset tax_group')
 Security = namedtuple('Security', 'symbol asset asset_group')
 AccountInfo = namedtuple('AccountInfo', 'description tax_status')
+IDEntry = namedtuple('IDEntry', 'name id')
 
 class Database:
     def __init__(self):
@@ -68,16 +69,16 @@ class Database:
         return self.__return_iter(Security._make, cmd)
 
     def get_asset_abbreviations(self):
-        cmd = "SELECT Abbreviation from Assets"
-        return self.__return_iter(''.join, cmd)
+        cmd = "SELECT Abbreviation, ID from Assets"
+        return self.__return_iter(IDEntry._make, cmd)
 
     def get_asset_groups(self):
         cmd = "SELECT Name from AssetGroups"
         return self.__return_iter(''.join, cmd)
 
     def get_tax_groups(self):
-        cmd = "SELECT Name FROM TaxGroups"
-        return self.__return_iter(''.join, cmd)
+        cmd = "SELECT Name, ID FROM TaxGroups"
+        return self.__return_iter(IDEntry._make, cmd)
 
     def get_user_salt(self, **kwargs):
         user_hash = get_user_hash_from_kwargs(kwargs)

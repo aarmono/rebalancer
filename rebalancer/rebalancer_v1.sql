@@ -206,7 +206,7 @@ INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES ("DEFAU
 --INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES ("DEFAULT", 3, 4, 6);
 --INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES ("DEFAULT", 3, 5, 5);
 --INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES ("DEFAULT", 3, 6, 4);
---INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES ("DEFAULT", 3, 7, 7);
+INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES ("DEFAULT", 3, 7, 7);
 
 INSERT INTO Targets (User, AssetID, TargetDeciPercent) VALUES ("DEFAULT", 1, 337);
 INSERT INTO Targets (User, AssetID, TargetDeciPercent) VALUES ("DEFAULT", 2,  50);

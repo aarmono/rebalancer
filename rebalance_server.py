@@ -45,5 +45,29 @@ def result():
                     taxable_credit=taxable_credit,
                     tax_deferred_credit=tax_deferred_credit)
 
+@route('/asset_affinity', method='POST')
+def asset_affinity_show():
+    token              = request.forms.get('user_token')
+    upload             = request.files.get('upload')
+    name, ext = os.path.splitext(upload.filename)
+    if ext not in ('.csv'):
+        return 'File extension not allowed.'
+
+    return template('templates/asset_config.tmpl',
+                    user_token=token,
+                    portfolio_file=upload.file)
+
+@route('/asset_affinity/update', method='POST')
+def asset_affinity_show():
+    token              = request.forms.get('user_token')
+
+    for item in request.forms.items():
+        print(item)
+
+    return template('templates/asset_config.tmpl',
+                    user_token=token,
+                    portfolio_file=upload.file)
+
+
 run(host='localhost', port=8090, debug=True)
 

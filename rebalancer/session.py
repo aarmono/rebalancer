@@ -14,7 +14,7 @@ from .rebalance import Rebalancer
 
 def create_tax_status(database):
     tax_status = {}
-    for name in database.get_tax_groups():
+    for (name, _) in database.get_tax_groups():
         tax_status[to_enum_name(name)] = name
 
     TaxStatusClass = namedtuple('TaxStatusClass', ' '.join(tax_status.keys()))

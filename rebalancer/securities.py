@@ -4,8 +4,9 @@ from .utils import to_enum_name, is_mutual_fund
 from .db import Database
 
 class SecurityDatabase:
-    def __init__(self, account_entries):
-        self.__current_prices = dict([(entry.symbol, entry.share_price) for entry in account_entries])
+    def __init__(self, account_entries = None):
+        if account_entries is not None:
+            self.__current_prices = dict([(entry.symbol, entry.share_price) for entry in account_entries])
 
         with Database() as db:
             self.__create_securities(db)
@@ -59,7 +60,7 @@ class SecurityDatabase:
 
     def __create_assets(self, database):
         assets = {}
-        for abbrev in database.get_asset_abbreviations():
+        for (abbrev, _) in database.get_asset_abbreviations():
             assets[to_enum_name(abbrev)] = abbrev
 
         AssetsClass = namedtuple('AssetsClass', ' '.join(assets.keys()))
