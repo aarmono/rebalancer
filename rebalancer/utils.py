@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import uuid4
 
 def to_dollars(value):
     value = round_cents(value)
@@ -26,6 +27,19 @@ def compute_percent_difference(current_value, target_value):
 
 def to_enum_name(text):
     return text.replace(' ', '_').replace('-', '_').upper()
+
+def get_salt_from_file():
+    user_salt = None
+    try:
+        with open(".salt", "x") as f:
+            user_salt = uuid4().hex
+            f.write(user_salt)
+            f.flush()
+    except Exception:
+        with open(".salt", "r") as f:
+            user_salt = f.read()
+
+    return user_salt
 
 def get_token_from_file():
     user_token = None

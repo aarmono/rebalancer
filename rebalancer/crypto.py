@@ -2,9 +2,11 @@ from hashlib import sha256, sha512, pbkdf2_hmac
 from base64 import b64encode, b64decode
 
 from .pyaes import AESModeOfOperationCTR
+from .utils import get_salt_from_file
 
 def hash_user_token(user_token):
-    return b64encode(sha256(user_token.encode('utf-8')).digest()).decode('utf-8')
+    salt = get_salt_from_file()
+    return hash_user_token_with_salt(user_token, salt = salt)
 
 def get_salt_from_kwargs(user_token, kwargs):
     salt = None
