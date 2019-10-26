@@ -22,7 +22,7 @@ tax_groups = list(db.get_tax_groups())
 
 <form action="/account_config/update" method="post" enctype="multipart/form-data">
 
-<input type="hidden" name="user_token" value="{{user_token}}">
+<input type="hidden" name="user_token" value="{{user_token}}" />
 
 <h1>Configure Accounts</h1>
 
@@ -41,7 +41,7 @@ tax_groups = list(db.get_tax_groups())
     % selected = info is not None and tax_group == info.tax_status
     <option value="{{tax_group}}" {{!'selected="selected"' if selected else ''}}>{{tax_group}}</option>
     %end
-    <option value="IGNORE" {{!'selected="selected"' if info is None else ''>Ignore</option>
+    <option value="IGNORE" {{!'selected="selected"' if info is None else ''}}>Ignore</option>
   </select>
 </p>
 
