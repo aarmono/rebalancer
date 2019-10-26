@@ -2,7 +2,7 @@
 from csv import DictReader
 from collections import defaultdict
 
-from rebalancer import hash_account_name, hash_user_token, get_user_salt, encrypt_account_description, create_db_conn, get_token_from_file
+from rebalancer import hash_account_name, hash_user_token, encrypt_account_description, get_token_from_file, Database
 
 def parse_file(filename):
     accounts = defaultdict(list)
@@ -27,11 +27,11 @@ def main():
 
     accounts = parse_file(sys.argv[1])
 
-    with create_db_conn() as conn:
-        salt = get_user_salt(conn, user_token)
+    with Database() as db:
+        salt = db.get_user_salt(user_hash = user_hash)
         if salt is None:
-            conn.execute('INSERT INTO UserSalts (User) VALUES (?)', (user_hash,))
-            salt = get_user_salt(conn, user_token)
+            db.add_user(user_hash = user_hash)
+            salt = db.get_user_salt(user_hash = user_hash)
 
         for (account, symbols) in accounts.items():
             print("Found account %s with the following securities" % (account))
@@ -40,26 +40,15 @@ def main():
 
             result = input("Do you want to add this account to the database (Y/N): ")
             if result.upper().strip() == "Y":
-                hashed_account = hash_account_name(user_token, account, salt=salt)
 
                 description = input("Enter an account description to identify the account: ")
                 tax_status = input("What kind of account is this (1 = Taxable, 2 = Tax Deferred, 3 = Roth): ")
 
-                encrypted_description = None
-                if len(description) > 0:
-                    encrypted_description = encrypt_account_description(user_token,
-                                                                        account,
-                                                                        description,
-                                                                        salt=salt)
-
-                    conn.execute('INSERT INTO Accounts (ID, Description, TaxGroupID) VALUES (?, ?, ?)',
-                                 (hashed_account,
-                                  encrypted_description,
-                                  tax_status))
+                db.add_account(user_token, account, description, tax_status, salt)
 
             print("")
 
-        conn.commit()
+        db.commit()
 
 
 if __name__ == "__main__":
