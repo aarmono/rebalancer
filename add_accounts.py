@@ -41,6 +41,8 @@ def main():
                 tax_status = input("What kind of account is this (1 = Taxable, 2 = Tax Deferred, 3 = Roth): ")
 
                 db.add_account(user_token, account, description, tax_status, salt)
+            else:
+                db.delete_account(user_token, account, salt)
 
             print("")
 
