@@ -144,7 +144,6 @@ class Database:
                           salted_token)
 
         for affinity in asset_affinities:
-            print(affinity)
             cmd = "INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES (?, ?, ?, ?)"
             self.__return_one(''.join,
                               cmd,
