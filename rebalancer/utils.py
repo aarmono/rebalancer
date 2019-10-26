@@ -1,5 +1,5 @@
 from decimal import Decimal
-from uuid import uuid4
+from os import urandom
 
 def to_dollars(value):
     value = round_cents(value)
@@ -32,7 +32,7 @@ def get_salt_from_file():
     user_salt = None
     try:
         with open(".salt", "x") as f:
-            user_salt = uuid4().hex
+            user_salt = urandom(16).hex()
             f.write(user_salt)
             f.flush()
     except Exception:
@@ -45,7 +45,7 @@ def get_token_from_file():
     user_token = None
     try:
         with open(".token", "x") as f:
-            user_token = uuid4().hex
+            user_token = urandom(16).hex()
             f.write(user_token)
     except Exception:
         with open(".token", "r") as f:
