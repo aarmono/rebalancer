@@ -9,7 +9,7 @@ def hash_user_token(user_token):
 def get_salt_from_kwargs(user_token, kwargs):
     salt = None
     if "salt" not in kwargs or kwargs["salt"] is None:
-        salt = get_user_salt(kwargs["conn"], user_token)
+        salt = kwargs["db"].get_user_salt(user_token)
     else:
         salt = kwargs["salt"]
 

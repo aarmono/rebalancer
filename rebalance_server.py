@@ -3,7 +3,7 @@ import os
 from decimal import Decimal
 
 from bottle import template, route, run, request
-from rebalancer import RebalanceMode
+from rebalancer import RebalanceMode, Database, AssetAffinity
 
 @route('/')
 def index():
@@ -47,26 +47,36 @@ def result():
 
 @route('/asset_affinity', method='POST')
 def asset_affinity_show():
-    token              = request.forms.get('user_token')
-    upload             = request.files.get('upload')
-    name, ext = os.path.splitext(upload.filename)
-    if ext not in ('.csv'):
-        return 'File extension not allowed.'
+    token = request.forms.get('user_token')
 
     return template('templates/asset_config.tmpl',
-                    user_token=token,
-                    portfolio_file=upload.file)
+                    user_token=token)
 
 @route('/asset_affinity/update', method='POST')
 def asset_affinity_show():
-    token              = request.forms.get('user_token')
+    token = request.forms.get('user_token')
 
-    for item in request.forms.items():
-        print(item)
+    with Database() as db:
+        asset_ids = dict(db.get_asset_abbreviations())
+        tax_group_ids = dict(db.get_tax_groups())
+
+        affinities = []
+        for (key, priority) in request.forms.items():
+            try:
+                (tax_group, asset) = tuple(key.split('|'))
+                if priority != "DISABLE":
+                    val = AssetAffinity(asset_ids[asset],
+                                        tax_group_ids[tax_group],
+                                        int(priority))
+                    affinities.append(val)
+            except Exception as ex:
+                pass
+
+        db.set_asset_affinities(token, affinities)
+        db.commit()
 
     return template('templates/asset_config.tmpl',
-                    user_token=token,
-                    portfolio_file=upload.file)
+                    user_token=token)
 
 
 run(host='localhost', port=8090, debug=True)

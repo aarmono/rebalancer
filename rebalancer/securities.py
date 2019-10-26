@@ -68,7 +68,7 @@ class SecurityDatabase:
 
     def __create_asset_groups(self, database):
         asset_groups = {}
-        for name in database.get_asset_groups():
+        for (name, _) in database.get_asset_groups():
             asset_groups[to_enum_name(name)] = name
 
         AssetGroupsClass = namedtuple('AssetGroupsClass',

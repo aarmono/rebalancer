@@ -3,7 +3,7 @@ from sqlite3 import connect
 from decimal import Decimal
 from collections import namedtuple
 
-from .crypto import hash_user_token, hash_account_name
+from .crypto import hash_user_token, hash_account_name, hash_user_token_with_salt
 from .crypto import encrypt_account_description, decrypt_account_description
 
 def create_db_conn():
@@ -30,6 +30,8 @@ AssetTaxGroup = namedtuple('AssetTaxGroup', 'asset tax_group')
 Security = namedtuple('Security', 'symbol asset asset_group')
 AccountInfo = namedtuple('AccountInfo', 'description tax_status')
 IDEntry = namedtuple('IDEntry', 'name id')
+
+AssetAffinity = namedtuple('AssetAffinity', 'asset_id tax_group_id priority')
 
 class Database:
     def __init__(self):
@@ -73,8 +75,8 @@ class Database:
         return self.__return_iter(IDEntry._make, cmd)
 
     def get_asset_groups(self):
-        cmd = "SELECT Name from AssetGroups"
-        return self.__return_iter(''.join, cmd)
+        cmd = "SELECT Name, ID from AssetGroups"
+        return self.__return_iter(IDEntry._make, cmd)
 
     def get_tax_groups(self):
         cmd = "SELECT Name, ID FROM TaxGroups"
@@ -132,6 +134,24 @@ class Database:
             return AccountInfo(description, tax_group)
         else:
             return None
+
+    def set_asset_affinities(self, user_token, asset_affinities):
+        salt = self.get_user_salt(user_token = user_token)
+        salted_token = hash_user_token_with_salt(user_token, salt = salt)
+
+        self.__return_one(''.join,
+                          "DELETE FROM AssetAffinities WHERE User == ?",
+                          salted_token)
+
+        for affinity in asset_affinities:
+            print(affinity)
+            cmd = "INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES (?, ?, ?, ?)"
+            self.__return_one(''.join,
+                              cmd,
+                              salted_token,
+                              affinity.tax_group_id,
+                              affinity.asset_id,
+                              affinity.priority)
 
     def commit(self):
         self.__conn.commit()

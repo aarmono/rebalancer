@@ -1,49 +1,49 @@
 from collections import namedtuple, defaultdict
 from decimal import Decimal
 
-from .crypto import hash_user_token
+from .crypto import hash_user_token_with_salt
 from .db import Database
 from .utils import round_cents
 
 DEFAULT = "DEFAULT"
 
-def get_asset_targets_by_id(database, user_hash):
+def get_asset_targets_by_id(database, salted_user_hash):
     ret = {}
-    for (asset, target) in database.get_asset_targets(user_hash):
+    for (asset, target) in database.get_asset_targets(salted_user_hash):
         ret[asset] = (Decimal(target) / 1000).quantize(Decimal('0.001'))
 
     return ret
 
-def get_asset_targets(database, user_hash):
-    ret = get_asset_targets_by_id(database, user_hash)
+def get_asset_targets(database, salted_user_hash):
+    ret = get_asset_targets_by_id(database, salted_user_hash)
     if len(ret) == 0:
         ret = get_asset_targets_by_id(database, DEFAULT)
 
     return ret
 
-def get_asset_tax_affinity_by_id(database, user_hash):
+def get_asset_tax_affinity_by_id(database, salted_user_hash):
     affinity = defaultdict(list)
-    for (asset, tax_group) in database.get_asset_tax_affinity(user_hash):
+    for (asset, tax_group) in database.get_asset_tax_affinity(salted_user_hash):
         affinity[asset].append(tax_group)
 
     return dict(affinity.items())
 
-def get_asset_tax_affinity(database, user_hash):
-    ret = get_asset_tax_affinity_by_id(database, user_hash)
+def get_asset_tax_affinity(database, salted_user_hash):
+    ret = get_asset_tax_affinity_by_id(database, salted_user_hash)
     if len(ret) == 0:
         ret = get_asset_tax_affinity_by_id(database, DEFAULT)
 
     return ret
 
-def get_tax_group_asset_affinity_by_id(database, user_hash):
+def get_tax_group_asset_affinity_by_id(database, salted_user_hash):
     affinity = defaultdict(list)
-    for (asset, tax_group) in database.get_tax_group_asset_affinity(user_hash):
+    for (asset, tax_group) in database.get_tax_group_asset_affinity(salted_user_hash):
         affinity[tax_group].append(asset)
 
     return dict(affinity.items())
 
-def get_tax_group_asset_affinity(database, user_hash):
-    ret = get_tax_group_asset_affinity_by_id(database, user_hash)
+def get_tax_group_asset_affinity(database, salted_user_hash):
+    ret = get_tax_group_asset_affinity_by_id(database, salted_user_hash)
     if len(ret) == 0:
         ret = get_tax_group_asset_affinity_by_id(database, DEFAULT)
 
@@ -53,11 +53,13 @@ class AccountTarget:
     def __init__(self, user_token, security_db):
         self.__security_db = security_db
 
-        user_hash = hash_user_token(user_token)
         with Database() as db:
-            asset_targets = get_asset_targets(db, user_hash)
-            asset_tax_affinity = get_asset_tax_affinity(db, user_hash)
-            tax_group_asset_affinity = get_tax_group_asset_affinity(db, user_hash)
+            salt = db.get_user_salt(user_token = user_token)
+            salted_user_hash = hash_user_token_with_salt(user_token, salt = salt)
+
+            asset_targets = get_asset_targets(db, salted_user_hash)
+            asset_tax_affinity = get_asset_tax_affinity(db, salted_user_hash)
+            tax_group_asset_affinity = get_tax_group_asset_affinity(db, salted_user_hash)
 
             asset_group_targets = defaultdict(Decimal)
             for (asset, target) in asset_targets.items():

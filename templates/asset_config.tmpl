@@ -5,15 +5,21 @@ from rebalance import *
 
 account_target = AccountTarget(user_token, SecurityDatabase())
 
-assets = list(account_target.get_target_asset_percentages().keys())
-num_assets = len(assets)
-
+asset_ids = {}
 tax_groups = []
 with Database() as db:
     for (name, _) in db.get_tax_groups():
         tax_groups.append(name)
     end
+
+    for (asset, id) in db.get_asset_abbreviations():
+        asset_ids[asset] = id
 end
+
+assets = sorted(account_target.get_target_asset_percentages().keys(),
+                key=lambda x: asset_ids[x])
+num_assets = len(assets)
+
 %>
 
 <!DOCTYPE html>
@@ -43,8 +49,8 @@ table, th, td {
 affinities = account_target.get_tax_group_asset_affinity(tax_status)
 affinity_map = {}
 
-for i in range(1, len(affinities)):
-    affinity_map[affinities[i]] = i
+for i in range(0, len(affinities)):
+    affinity_map[affinities[i]] = i + 1
 end
 
 for asset in assets:
@@ -57,7 +63,7 @@ for asset in assets:
     values.append(("DISABLE", "Disable"))
 %>
 <p>
-    <label for="{{tax_status}}_{{asset}}">{{asset}} Priority: </label>
+    <label for="{{tax_status}}|{{asset}}">{{asset}} Priority: </label>
     <select name="{{tax_status}}|{{asset}}">
     % for (value, text) in values:
       % if value == cur_value:
