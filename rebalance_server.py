@@ -10,6 +10,10 @@ from rebalancer import RebalanceMode, Database, AssetAffinity
 def index():
     return template('templates/index.tmpl')
 
+@route('/get_token')
+def get_token():
+    return os.urandom(16).hex()
+
 @route('/result', method='POST')
 def result():
     token              = request.forms.get('user_token')
