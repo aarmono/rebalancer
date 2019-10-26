@@ -107,12 +107,22 @@ class Database:
                                                                 description,
                                                                 salt = salt)
 
-        cmd = "INSERT INTO Accounts (ID, Description, TaxGroupID) VALUES (?, ?, ?)"
+        cmd = "REPLACE INTO Accounts (ID, Description, TaxGroupID) VALUES (?, ?, ?)"
         self.__return_one(str,
                           cmd,
                           hashed_account,
                           encrypted_description,
                           tax_group_id)
+
+    def delete_account(self, user_token, account, salt = None):
+        if salt is None:
+            salt = self.get_user_salt(user_token = user_token)
+
+        hashed_account = hash_account_name(user_token, account, salt = salt)
+
+        cmd = "DELETE FROM Accounts WHERE ID == ?"
+        self.__return_one(str, cmd, hashed_account)
+
 
     def get_account_info(self, user_token, account, salt = None):
         if salt is None:

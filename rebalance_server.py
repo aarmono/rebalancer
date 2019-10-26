@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 from decimal import Decimal
+from collections import defaultdict
 
 from bottle import template, route, run, request
 from rebalancer import RebalanceMode, Database, AssetAffinity
@@ -89,6 +90,43 @@ def account_config_show():
     return template('templates/account_config.tmpl',
                     user_token=token,
                     portfolio_file=upload.file)
+
+@route('/account_config/update', method='POST')
+def account_config_update():
+    token = request.forms.get('user_token')
+
+    account_info = defaultdict(dict)
+    with Database() as db:
+        tax_group_ids = dict(db.get_tax_groups())
+
+        affinities = []
+        for (key, value) in request.forms.items():
+            try:
+                (account, account_key) = tuple(key.split('|'))
+                account_info[account][account_key] = value
+            except Exception as ex:
+                pass
+
+        for account in account_info.keys():
+            account_map = account_info[account]
+
+            tax_group = account_map.get('tax_group')
+            description = account_map.get('description')
+            
+            if tax_group is None or tax_group not in tax_group_ids:
+                db.delete_account(token, account)
+            else:
+                tax_group_id = tax_group_ids[tax_group]
+                db.add_account(token,
+                               account,
+                               description,
+                               tax_group_id)
+
+        db.commit()
+
+    return template('templates/account_config_display.tmpl',
+                    user_token=token,
+                    accounts=list(account_info.keys()))
 
 run(host='localhost', port=8090, debug=True)
 

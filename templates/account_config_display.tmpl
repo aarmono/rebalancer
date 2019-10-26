@@ -16,25 +16,8 @@ from decimal import Decimal
 from collections import OrderedDict
 from rebalance import *
 
-user_hash = hash_user_token(user_token)
-account_entries = parse_file(portfolio_file)
-
-accounts = OrderedDict()
-for entry in account_entries:
-    if entry.account_name not in accounts:
-        accounts[entry.account_name] = []
-        accounts.move_to_end(entry.account_name)
-    end
-
-    accounts[entry.account_name].append((entry.symbol, entry.description))
-end
-
 with Database() as db:
 tax_groups = list(db.get_tax_groups())
-salt = db.get_user_salt(user_hash = user_hash)
-if salt is None:
-    db.add_user(user_hash = user_hash)
-end
 %>
 
 <form action="/account_config/update" method="post" enctype="multipart/form-data">
@@ -43,22 +26,8 @@ end
 
 <h1>Configure Accounts</h1>
 
-% for (account, symbols) in accounts.items():
+% for account in accounts:
 <h2>{{account}}</h2>
-
-<table>
-  <tr>
-    <th>Symbol</th>
-    <th>Description</th>
-  </tr>
-  % for (symbol, description) in symbols:
-  <tr>
-    <td>{{symbol}}</td>
-    <td>{{description}}</td>
-  </tr>
-  %end
-</table>
-
 <p>
   <label for="{{account}}|description">Description: </label>
   % info = db.get_account_info(user_token, account)
@@ -72,14 +41,14 @@ end
     % selected = info is not None and tax_group == info.tax_status
     <option value="{{tax_group}}" {{!'selected="selected"' if selected else ''}}>{{tax_group}}</option>
     %end
-    <option value="IGNORE">Ignore</option>
+    <option value="IGNORE" {{!'selected="selected"' if info is None else ''>Ignore</option>
   </select>
 </p>
 
 
 
 % end
-<input type="submit" value="Add Accounts" />
+<input type="submit" value="Update Accounts" />
 </form>
 
 % end
