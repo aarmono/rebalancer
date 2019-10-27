@@ -2,9 +2,10 @@
 import os
 from decimal import Decimal
 from collections import defaultdict
+import argparse
 
 from bottle import template, route, run, request
-from rebalancer import RebalanceMode, Database, AssetAffinity, Session, AccountTarget, SecurityDatabase, hash_user_token, hash_user_token_with_salt
+from rebalancer import RebalanceMode, Database, AssetAffinity, Session, hash_user_token, hash_user_token_with_salt
 
 @route('/')
 def index():
@@ -101,7 +102,7 @@ def configure_update():
                     (account, account_key) = tuple(subelement.split('|'))
                     account_info[account][account_key] = value
                 elif section == "affinity":
-                    (tax_group, asset) = tuple(key.split('|'))
+                    (tax_group, asset) = tuple(subelement.split('|'))
                     if value != "DISABLE":
                         val = AssetAffinity(asset_ids[asset],
                                             tax_group_ids[tax_group],
@@ -148,5 +149,17 @@ def configure_update():
                         assets = assets,
                         database = database)
 
-run(host='localhost', port=8090, debug=True)
+def main():
+    parser = argparse.ArgumentParser(description='Rebalance server')
+    parser.add_argument('--bind', dest='host', type=str, default='127.0.0.1',
+                        help='bind to specified ip address')
+    parser.add_argument('--port', dest='port', type=int, default=8090,
+                        help='bind to specified port')
+    parser.add_argument('--debug', dest='debug', action='store_true',
+                        help='Enable debug mode in HTTP server')
 
+    args = parser.parse_args()
+    run(host=args.host, port=args.port, debug=args.debug)
+
+if __name__ == "__main__":
+    main()
