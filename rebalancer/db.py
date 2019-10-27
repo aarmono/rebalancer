@@ -11,8 +11,16 @@ def create_db_conn():
     this_dir = path.dirname(this_file_path)
     database_path = path.join(this_dir, "rebalance.db")
 
+    init_db = not path.exists(database_path)
+
     conn = connect(database_path)
     conn.execute("PRAGMA foreign_keys = ON;")
+
+    if init_db:
+        script_path = path.join(this_dir, "rebalancer_v1.sql")
+        with open(script_path, "r") as f:
+            conn.executescript(f.read())
+            conn.commit()
 
     return conn
 
