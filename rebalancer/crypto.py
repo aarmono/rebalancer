@@ -23,7 +23,7 @@ def hash_user_token_with_salt(user_token, **kwargs):
     return b64encode(pbkdf2_hmac('sha256',
                                  user_token.encode('utf-8'),
                                  salt.encode('utf-8'),
-                                 100000))
+                                 100000)).decode('utf-8')
 
 def hash_account_name(user_token, account_name, **kwargs):
     salt = get_salt_from_kwargs(user_token, kwargs).encode('utf-8')
