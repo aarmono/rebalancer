@@ -60,7 +60,22 @@ table, th, td {
     <input type="text" name="user_token" />
   </p>
   <p>
-    <input type="submit" value="Rebalance" />
+    <input type="submit" value="Add Accounts" />
+  </p>
+</form>
+
+<h1>Adjust Target Allocation</h1>
+<form action="/target_config" method="post" enctype="multipart/form-data">
+  <p>
+    <label for="upload">Select a file: </label>
+    <input type="file" name="upload" />
+  </p>
+  <p>
+    <label for="user_token">Token (<a href="/get_token">Get Token</a>): </label>
+    <input type="text" name="user_token" />
+  </p>
+  <p>
+    <input type="submit" value="Adjust Targets" />
   </p>
 </form>
 

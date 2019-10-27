@@ -4,14 +4,15 @@ from .utils import to_enum_name, is_mutual_fund
 from .db import Database
 
 class SecurityDatabase:
-    def __init__(self, account_entries = None):
+    def __init__(self, account_entries = None, database = None):
         if account_entries is not None:
             self.__current_prices = dict([(entry.symbol, entry.share_price) for entry in account_entries])
 
-        with Database() as db:
-            self.__create_securities(db)
-            self.__create_assets(db)
-            self.__create_asset_groups(db)
+        if database is None:
+            with Database() as db:
+                self.__init_from_db(db)
+        else:
+            self.__init_from_db(database)
 
     def contains_symbol(self, symbol):
         return symbol in self.__asset_classes
@@ -41,6 +42,11 @@ class SecurityDatabase:
         for symbol in self.__asset_securities[asset]:
             if is_mutual_fund(symbol) == False and symbol in self.__current_prices:
                 return symbol
+
+    def __init_from_db(self, db):
+        self.__create_securities(db)
+        self.__create_assets(db)
+        self.__create_asset_groups(db)
 
     def __create_securities(self, database):
         asset_classes = {}

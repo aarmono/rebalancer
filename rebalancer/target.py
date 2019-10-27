@@ -50,26 +50,32 @@ def get_tax_group_asset_affinity(database, salted_user_hash):
     return ret
 
 class AccountTarget:
-    def __init__(self, user_token, security_db):
+    def __init__(self, user_token, security_db, database = None):
         self.__security_db = security_db
 
-        with Database() as db:
-            salt = db.get_user_salt(user_token = user_token)
-            salted_user_hash = hash_user_token_with_salt(user_token, salt = salt)
+        if database is None:
+            with Database() as db:
+                self.__init_from_db(user_token, security_db, db)
+        else:
+            self.__init_from_db(user_token, security_db, database)
 
-            asset_targets = get_asset_targets(db, salted_user_hash)
-            asset_tax_affinity = get_asset_tax_affinity(db, salted_user_hash)
-            tax_group_asset_affinity = get_tax_group_asset_affinity(db, salted_user_hash)
+    def __init_from_db(self, user_token, security_db, db):
+        salt = db.get_user_salt(user_token = user_token)
+        salted_user_hash = hash_user_token_with_salt(user_token, salt = salt)
 
-            asset_group_targets = defaultdict(Decimal)
-            for (asset, target) in asset_targets.items():
-                asset_group = security_db.get_asset_group_for_asset(asset)
-                asset_group_targets[asset_group] += target
+        asset_targets = get_asset_targets(db, salted_user_hash)
+        asset_tax_affinity = get_asset_tax_affinity(db, salted_user_hash)
+        tax_group_asset_affinity = get_tax_group_asset_affinity(db, salted_user_hash)
 
-            self.__asset_targets = asset_targets
-            self.__asset_tax_affinity = asset_tax_affinity
-            self.__tax_group_asset_affinity = tax_group_asset_affinity
-            self.__asset_group_targets = dict(asset_group_targets.items())
+        asset_group_targets = defaultdict(Decimal)
+        for (asset, target) in asset_targets.items():
+            asset_group = security_db.get_asset_group_for_asset(asset)
+            asset_group_targets[asset_group] += target
+
+        self.__asset_targets = asset_targets
+        self.__asset_tax_affinity = asset_tax_affinity
+        self.__tax_group_asset_affinity = tax_group_asset_affinity
+        self.__asset_group_targets = dict(asset_group_targets.items())
 
     def get_target_asset_percentages(self):
         return self.__asset_targets.copy()

@@ -58,6 +58,15 @@ class Database:
         cmd = "SELECT Asset, TargetDeciPercent FROM AssetTargetsMap WHERE User == ?"
         return self.__return_iter(AssetTarget._make, cmd, user_hash)
 
+    def set_asset_targets(self, user_hash, asset_targets):
+        self.__return_one(''.join,
+                          "DELETE FROM Targets WHERE User == ?",
+                          user_hash)
+
+        for (asset_id, target_deci_percent) in asset_targets:
+            cmd = "INSERT INTO Targets (User, AssetID, TargetDeciPercent) VALUES (?, ?, ?)"
+            self.__return_one(str, cmd, user_hash, asset_id, target_deci_percent)
+
     def get_asset_tax_affinity(self, user_hash):
         cmd = "SELECT Asset, TaxGroup FROM AssetAffinitiesMap WHERE User == ? ORDER BY Asset, Priority"
         return self.__return_iter(AssetTaxGroup._make, cmd, user_hash)

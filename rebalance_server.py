@@ -4,7 +4,7 @@ from decimal import Decimal
 from collections import defaultdict
 
 from bottle import template, route, run, request
-from rebalancer import RebalanceMode, Database, AssetAffinity
+from rebalancer import RebalanceMode, Database, AssetAffinity, Session, AccountTarget, SecurityDatabase, hash_user_token, hash_user_token_with_salt
 
 @route('/')
 def index():
@@ -131,6 +131,68 @@ def account_config_update():
     return template('templates/account_config_display.tmpl',
                     user_token=token,
                     accounts=list(account_info.keys()))
+
+@route('/target_config', method='POST')
+def target_config():
+    token = request.forms.get('user_token')
+    upload = request.files.get('upload')
+    name, ext = os.path.splitext(upload.filename)
+    if ext not in ('.csv'):
+        return 'File extension not allowed.'
+
+    session = Session(token, upload.file)
+    portfolio = session.get_portfolio()
+    account_target = session.get_account_target()
+
+    assets = None
+    with Database() as db:
+        asset_ids = dict(db.get_asset_abbreviations())
+        assets = sorted(portfolio.keys(), key=lambda x: asset_ids[x])
+
+    return template('templates/target_asset_config.tmpl',
+                    user_token=token,
+                    assets=assets,
+                    account_target=account_target)
+
+@route('/target_config/update', method='POST')
+def target_config():
+    token = request.forms.get('user_token')
+    user_hash = hash_user_token(token)
+
+    with Database() as db:
+        salt = db.get_user_salt(user_hash = user_hash)
+        if salt is None:
+            db.add_user(user_hash = user_hash)
+            salt = db.get_user_salt()
+
+        salted_user_token = hash_user_token_with_salt(token, salt = salt)
+
+        asset_ids = dict(db.get_asset_abbreviations())
+        asset_deci_perentages = {}
+
+        asset_set = set()
+        for (key, value) in request.forms.items():
+            try:
+                (asset_str, asset) = tuple(key.split('|'))
+                if asset_str == "allocation":
+                    asset_set.add(asset)
+
+                    deci_percent = int(Decimal(value) * 10)
+                    asset_deci_perentages[asset_ids[asset]] = deci_percent
+            except Exception as ex:
+                pass
+
+        db.set_asset_targets(salted_user_token, asset_deci_perentages.items())
+        db.commit()
+
+        securities = SecurityDatabase(None, db)
+        account_target = AccountTarget(token, securities, db)
+        assets = sorted(asset_set, key=lambda x: asset_ids[x])
+
+        return template('templates/target_asset_config.tmpl',
+                        user_token=token,
+                        assets=assets,
+                        account_target=account_target)
 
 run(host='localhost', port=8090, debug=True)
 
