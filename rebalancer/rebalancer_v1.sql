@@ -3,21 +3,20 @@ BEGIN TRANSACTION;
 CREATE TABLE AssetGroups
 (
     ID   INTEGER PRIMARY KEY,
-    Name TEXT    NOT NULL
+    Name TEXT    NOT NULL UNIQUE
 );
 
 CREATE TABLE TaxGroups
 (
     ID   INTEGER PRIMARY KEY,
-    Name TEXT    NOT NULL
+    Name TEXT    NOT NULL UNIQUE
 );
 
 CREATE TABLE Assets
 (
     ID           INTEGER     PRIMARY KEY,
     AssetGroupID INTEGER     NOT NULL,
-    Abbreviation VARCHAR(16) NOT NULL,
-    Name         TEXT        NOT NULL,
+    Abbreviation VARCHAR(16) NOT NULL UNIQUE,
 
     FOREIGN KEY("AssetGroupID") REFERENCES AssetGroups("ID") ON DELETE CASCADE
 );
@@ -146,15 +145,15 @@ INSERT INTO TaxGroups (ID, Name) VALUES (2, "Tax Deferred");
 INSERT INTO TaxGroups (ID, Name) VALUES (3, "Roth");
 
 
-INSERT INTO Assets (ID, AssetGroupID, Abbreviation, Name) VALUES (1, 1, "US TSM",    "US Total Stock Market");
-INSERT INTO Assets (ID, AssetGroupID, Abbreviation, Name) VALUES (2, 1, "US SC",     "US Small Cap");
-INSERT INTO Assets (ID, AssetGroupID, Abbreviation, Name) VALUES (3, 1, "ex-US TSM", "Global ex-US Total Stock Market");
+INSERT INTO Assets (ID, AssetGroupID, Abbreviation) VALUES (1, 1, "US TSM");
+INSERT INTO Assets (ID, AssetGroupID, Abbreviation) VALUES (2, 1, "US SC");
+INSERT INTO Assets (ID, AssetGroupID, Abbreviation) VALUES (3, 1, "ex-US TSM");
 
-INSERT INTO Assets (ID, AssetGroupID, Abbreviation, Name) VALUES (4, 2, "US TBM",    "US Total Bond Market");
-INSERT INTO Assets (ID, AssetGroupID, Abbreviation, Name) VALUES (5, 2, "ex-US TBM", "Global ex-US Total Bond Market");
-INSERT INTO Assets (ID, AssetGroupID, Abbreviation, Name) VALUES (6, 2, "LTB",       "Long Term Bonds");
+INSERT INTO Assets (ID, AssetGroupID, Abbreviation) VALUES (4, 2, "US TBM");
+INSERT INTO Assets (ID, AssetGroupID, Abbreviation) VALUES (5, 2, "ex-US TBM");
+INSERT INTO Assets (ID, AssetGroupID, Abbreviation) VALUES (6, 2, "LTB");
 
-INSERT INTO Assets (ID, AssetGroupID, Abbreviation, Name) VALUES (7, 3, "Cash",      "Cash");
+INSERT INTO Assets (ID, AssetGroupID, Abbreviation) VALUES (7, 3, "Cash");
 
 
 INSERT INTO Securities (Symbol, AssetID) VALUES ("ITOT",  1);
