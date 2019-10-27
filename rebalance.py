@@ -157,23 +157,24 @@ def main():
         credit = round_cents(Decimal(options.credit))
 
     user_token = get_token_from_file()
-    session = Session(user_token, args[0], credit)
+    with Database() as database:
+        session = Session(user_token, database, args[0], credit)
 
-    portfolio = session.get_portfolio()
-    rebalancer = session.get_rebalancer()
-    account_target = session.get_account_target()
+        portfolio = session.get_portfolio()
+        rebalancer = session.get_rebalancer()
+        account_target = session.get_account_target()
 
-    targets_by_tax_group = rebalancer.compute_target_asset_values(portfolio,
-                                                                  rebalance_mode)
-    portfolio_transactions = portfolio.get_transactions_to_match_target(targets_by_tax_group)
+        targets_by_tax_group = rebalancer.compute_target_asset_values(portfolio,
+                                                                      rebalance_mode)
+        portfolio_transactions = portfolio.get_transactions_to_match_target(targets_by_tax_group)
 
-    print_composition("Portfolio composition", account_target, portfolio)
+        print_composition("Portfolio composition", account_target, portfolio)
 
-    print_transactions(portfolio_transactions)
+        print_transactions(portfolio_transactions)
 
-    new_portfolio = portfolio.copy_with_transactions_applied(portfolio_transactions)
+        new_portfolio = portfolio.copy_with_transactions_applied(portfolio_transactions)
 
-    print_composition("New Portfolio composition", account_target, new_portfolio)
+        print_composition("New Portfolio composition", account_target, new_portfolio)
 
 if __name__ == "__main__":
     import sys

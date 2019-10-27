@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+<title>Account Configuration</title>
+<body>
+
+<form action="/configure/update" method="post" enctype="multipart/form-data">
+
+<input type="hidden" name="user_token" value="{{user_token}}" />
+
+% include('templates/account_config_simple_editor.tmpl', accounts = accounts, database = database)
+% include('templates/target_asset_editor.tmpl', account_target = account_target, assets = assets, database = database)
+% include('templates/asset_editor.tmpl', account_target = account_target, database = database)
+
+<input type="submit" value="Update Config" />
+</form>
+
+<p>
+  <a href="/">Go Home</a>
+</p>
+
+</body>
+</html>

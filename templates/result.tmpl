@@ -1,8 +1,7 @@
 
 <%
 from decimal import Decimal
-from rebalance import *
-session = Session(user_token, portfolio_file, taxable_credit, tax_deferred_credit)
+from rebalance import Transaction
 
 portfolio = session.get_portfolio()
 rebalancer = session.get_rebalancer()

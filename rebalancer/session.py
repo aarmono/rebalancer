@@ -24,11 +24,11 @@ def get_account_info(database, user_token, account, account_name):
     return database.get_account_info(user_token, account_hash, account_name)
 
 class Session:
-    def __init__(self, user_token, filename, db, taxable_credit = None, tax_deferred_credit = None):
+    def __init__(self, user_token, db, filename = None, taxable_credit = None, tax_deferred_credit = None):
         self.__user_token = user_token
         self.__account_info = {}
 
-        self.__account_entries = parse_file(filename)
+        self.__account_entries = None if filename is None else parse_file(filename)
         self.__securities_db = SecurityDatabase(self.__account_entries, db)
         self.__account_target = AccountTarget(user_token, self.__securities_db, db)
         self.__rebalancer = Rebalancer(self.__securities_db, self.__account_target)
@@ -36,27 +36,29 @@ class Session:
         from multiprocessing import Pool
         p = Pool()
 
-        TaxStatus = create_tax_status(db)
-        self.__portfolio = Portfolio(self.__securities_db, TaxStatus)
+        self.__portfolio = None
+        if self.__account_entries is not None:
+            TaxStatus = create_tax_status(db)
+            self.__portfolio = Portfolio(self.__securities_db, TaxStatus)
 
-        for account_entry in self.__account_entries:
-            if self.__securities_db.contains_symbol(account_entry.symbol):
-                info = self.__get_account_info(db, account_entry.account_name)
-                if info is not None:
-                    current_value = account_entry.current_value
+            for account_entry in self.__account_entries:
+                if self.__securities_db.contains_symbol(account_entry.symbol):
+                    info = self.__get_account_info(db, account_entry.account_name)
+                    if info is not None:
+                        current_value = account_entry.current_value
 
-                    if account_entry.is_sweep:
-                        if taxable_credit is not None and \
-                           info.tax_status == TaxStatus.TAXABLE:
-                            current_value += taxable_credit
-                        elif tax_deferred_credit is not None and \
-                             info.tax_status == TaxStatus.TAX_DEFERRED:
-                            current_value += tax_deferred_credit
+                        if account_entry.is_sweep:
+                            if taxable_credit is not None and \
+                               info.tax_status == TaxStatus.TAXABLE:
+                                current_value += taxable_credit
+                            elif tax_deferred_credit is not None and \
+                                 info.tax_status == TaxStatus.TAX_DEFERRED:
+                                current_value += tax_deferred_credit
 
-                    self.__portfolio.add_position(info.description,
-                                                  info.tax_status,
-                                                  account_entry.symbol,
-                                                  current_value)
+                        self.__portfolio.add_position(info.description,
+                                                      info.tax_status,
+                                                      account_entry.symbol,
+                                                      current_value)
 
     def get_portfolio(self):
         return self.__portfolio

@@ -5,11 +5,11 @@ from decimal import Decimal
 asset_ids = {}
 tax_groups = []
 
-for (name, _) in db.get_tax_groups():
+for (name, _) in database.get_tax_groups():
     tax_groups.append(name)
 end
 
-for (asset, id) in db.get_asset_abbreviations():
+for (asset, id) in database.get_asset_abbreviations():
     asset_ids[asset] = id
 end
 
@@ -43,8 +43,8 @@ num_assets = len(assets)
             values.append(("DISABLE", "Disable"))
         %>
             <p>
-                <label for="{{tax_status}}|{{asset}}">{{asset}} Priority: </label>
-                <select name="{{tax_status}}|{{asset}}">
+                <label for="affinity/{{tax_status}}|{{asset}}">{{asset}} Priority: </label>
+                <select name="affinity/{{tax_status}}|{{asset}}">
                 % for (value, text) in values:
                     <option value="{{value}}" {{!'selected="selected"' if value == cur_value else ''}}>{{text}}</option>
                 %end

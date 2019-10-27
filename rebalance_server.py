@@ -43,12 +43,17 @@ def result():
     elif rebalance_mode_str == "NO_SELL":
         rebalance_mode = RebalanceMode.NO_SELL
 
-    return template('templates/result.tmpl',
-                    user_token=token,
-                    portfolio_file=upload.file,
-                    rebalance_mode=rebalance_mode,
-                    taxable_credit=taxable_credit,
-                    tax_deferred_credit=tax_deferred_credit)
+    with Database() as database:
+        session = Session(token,
+                          database,
+                          upload.file,
+                          taxable_credit,
+                          tax_deferred_credit)
+
+        return template('templates/result.tmpl',
+                        user_token = token,
+                        session = session,
+                        rebalance_mode = rebalance_mode)
 
 @route('/configure', method='POST')
 def configure_show():
@@ -61,56 +66,57 @@ def configure_show():
 
     hashed_token_system_salt = hash_user_token(user_token)
 
-    with Database() as db:
-        salt = db.get_user_salt(user_hash = hashed_token_system_salt)
+    with Database() as database:
+        salt = database.get_user_salt(user_hash = hashed_token_system_salt)
         if salt is None:
-            db.add_user(user_hash = hashed_token_system_salt)
+            database.add_user(user_hash = hashed_token_system_salt)
 
-        session = Session(user_token, upload.file, db)
+        session = Session(user_token, database, upload.file)
 
-        return template('templates/config.tmpl', user_token = user_token, session = session, db = db)
+        return template('templates/config.tmpl',
+                        user_token = user_token,
+                        session = session,
+                        database = database)
 
-@route('/asset_affinity/update', method='POST')
-def asset_affinity_update():
-    token = request.forms.get('user_token')
+@route('/configure/update', method='POST')
+def configure_update():
+    user_token = request.forms.get('user_token')
 
-    with Database() as db:
-        asset_ids = dict(db.get_asset_abbreviations())
-        tax_group_ids = dict(db.get_tax_groups())
-
-        affinities = []
-        for (key, priority) in request.forms.items():
-            try:
-                (tax_group, asset) = tuple(key.split('|'))
-                if priority != "DISABLE":
-                    val = AssetAffinity(asset_ids[asset],
-                                        tax_group_ids[tax_group],
-                                        int(priority))
-                    affinities.append(val)
-            except Exception as ex:
-                pass
-
-        db.set_asset_affinities(token, affinities)
-        db.commit()
-
-    return template('templates/asset_config.tmpl',
-                    user_token=token)
-
-@route('/account_config/update', method='POST')
-def account_config_update():
-    token = request.forms.get('user_token')
-
+    affinities = []
     account_info = defaultdict(dict)
-    with Database() as db:
-        tax_group_ids = dict(db.get_tax_groups())
+    asset_set = set()
+    asset_deci_perentages = {}
 
-        affinities = []
+    with Database() as database:
+        salt = database.get_user_salt(user_token = user_token)
+        hashed_token_user_salt = hash_user_token_with_salt(user_token, salt = salt)
+
+        tax_group_ids = dict(database.get_tax_groups())
+        asset_ids = dict(database.get_asset_abbreviations())
+
         for (key, value) in request.forms.items():
             try:
-                (account, account_key) = tuple(key.split('|'))
-                account_info[account][account_key] = value
+                (section, subelement) = tuple(key.split('/'))
+                if section == "accounts":
+                    (account, account_key) = tuple(subelement.split('|'))
+                    account_info[account][account_key] = value
+                elif section == "affinity":
+                    (tax_group, asset) = tuple(key.split('|'))
+                    if value != "DISABLE":
+                        val = AssetAffinity(asset_ids[asset],
+                                            tax_group_ids[tax_group],
+                                            int(value))
+                        affinities.append(val)
+                elif section == "allocation":
+                    asset_set.add(subelement)
+
+                    deci_percent = int(Decimal(value) * 10)
+                    asset_deci_perentages[asset_ids[subelement]] = deci_percent
             except Exception as ex:
+                print(ex)
                 pass
+
+        database.set_asset_affinities(user_token, affinities)
 
         for account in account_info.keys():
             account_map = account_info[account]
@@ -119,59 +125,28 @@ def account_config_update():
             description = account_map.get('description')
             
             if tax_group is None or tax_group not in tax_group_ids:
-                db.delete_account(token, account)
+                database.delete_account(user_token, account)
             else:
                 tax_group_id = tax_group_ids[tax_group]
-                db.add_account(token,
-                               account,
-                               description,
-                               tax_group_id)
+                database.add_account(user_token,
+                                     account,
+                                     description,
+                                     tax_group_id)
 
-        db.commit()
+        database.set_asset_targets(hashed_token_user_salt,
+                                   asset_deci_perentages.items())
 
-    return template('templates/account_config_display.tmpl',
-                    user_token=token,
-                    accounts=list(account_info.keys()))
+        database.commit()
 
-@route('/target_config/update', method='POST')
-def target_config():
-    token = request.forms.get('user_token')
-    user_hash = hash_user_token(token)
-
-    with Database() as db:
-        salt = db.get_user_salt(user_hash = user_hash)
-        if salt is None:
-            db.add_user(user_hash = user_hash)
-            salt = db.get_user_salt()
-
-        salted_user_token = hash_user_token_with_salt(token, salt = salt)
-
-        asset_ids = dict(db.get_asset_abbreviations())
-        asset_deci_perentages = {}
-
-        asset_set = set()
-        for (key, value) in request.forms.items():
-            try:
-                (asset_str, asset) = tuple(key.split('|'))
-                if asset_str == "allocation":
-                    asset_set.add(asset)
-
-                    deci_percent = int(Decimal(value) * 10)
-                    asset_deci_perentages[asset_ids[asset]] = deci_percent
-            except Exception as ex:
-                pass
-
-        db.set_asset_targets(salted_user_token, asset_deci_perentages.items())
-        db.commit()
-
-        securities = SecurityDatabase(None, db)
-        account_target = AccountTarget(token, securities, db)
         assets = sorted(asset_set, key=lambda x: asset_ids[x])
+        session = Session(user_token, database)
 
-        return template('templates/target_asset_config.tmpl',
-                        user_token=token,
-                        assets=assets,
-                        account_target=account_target)
+        return template('templates/config_simple.tmpl',
+                        user_token = user_token,
+                        accounts = list(account_info.keys()),
+                        account_target = session.get_account_target(),
+                        assets = assets,
+                        database = database)
 
 run(host='localhost', port=8090, debug=True)
 

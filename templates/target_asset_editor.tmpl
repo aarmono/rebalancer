@@ -3,9 +3,6 @@
 from decimal import Decimal
 
 target_percentages = account_target.get_target_asset_percentages()
-
-asset_ids = dict(database.get_asset_abbreviations())
-assets = sorted(portfolio.keys(), key=lambda x: asset_ids[x])
 %>
 
 <h1>Configure Target Positions</h1>
@@ -13,8 +10,8 @@ assets = sorted(portfolio.keys(), key=lambda x: asset_ids[x])
 % for asset in assets:
 <p>
     % target = target_percentages.get(asset)
-    <label for="allocation|{{asset}}">{{asset}}: </label>
-    <input name="allocation|{{asset}}" type="number" step=".1" value="{{target * 100 if target is not None else ''}}">
+    <label for="allocation/{{asset}}">{{asset}}: </label>
+    <input name="allocation/{{asset}}" type="number" step=".1" value="{{target * 100 if target is not None else ''}}">
 </p>
 
 % end
