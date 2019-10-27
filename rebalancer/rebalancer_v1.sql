@@ -3,13 +3,17 @@ BEGIN TRANSACTION;
 CREATE TABLE AssetGroups
 (
     ID   INTEGER PRIMARY KEY,
-    Name TEXT    NOT NULL UNIQUE
+    Name TEXT    NOT NULL UNIQUE,
+
+    CHECK (LENGTH(Name) > 0)
 );
 
 CREATE TABLE TaxGroups
 (
     ID   INTEGER PRIMARY KEY,
-    Name TEXT    NOT NULL UNIQUE
+    Name TEXT    NOT NULL UNIQUE,
+
+    CHECK (LENGTH(Name) > 0)
 );
 
 CREATE TABLE Assets
@@ -18,6 +22,8 @@ CREATE TABLE Assets
     AssetGroupID INTEGER     NOT NULL,
     Abbreviation VARCHAR(16) NOT NULL UNIQUE,
 
+    CHECK (LENGTH(Abbreviation) > 0),
+
     FOREIGN KEY("AssetGroupID") REFERENCES AssetGroups("ID") ON DELETE CASCADE
 );
 
@@ -25,6 +31,8 @@ CREATE TABLE Securities
 (
     Symbol  VARCHAR(8) NOT NULL PRIMARY KEY,
     AssetID INTEGER    NOT NULL,
+
+    CHECK(LENGTH(Symbol) > 0),
 
     FOREIGN KEY("AssetID") REFERENCES Assets("ID") ON DELETE CASCADE
 ) WITHOUT ROWID;
