@@ -6,21 +6,9 @@ from collections import namedtuple
 from .crypto import hash_user_token, hash_account_name, hash_user_token_with_salt
 from .crypto import encrypt_account_description, decrypt_account_description
 
-def create_db_conn():
-    this_file_path = path.abspath(__file__)
-    this_dir = path.dirname(this_file_path)
-    database_path = path.join(this_dir, "rebalance.db")
-
-    init_db = not path.exists(database_path)
-
+def create_db_conn(database_path):
     conn = connect(database_path)
     conn.execute("PRAGMA foreign_keys = ON;")
-
-    if init_db:
-        script_path = path.join(this_dir, "rebalancer_v1.sql")
-        with open(script_path, "r") as f:
-            conn.executescript(f.read())
-            conn.commit()
 
     return conn
 
@@ -41,9 +29,22 @@ IDEntry = namedtuple('IDEntry', 'name id')
 
 AssetAffinity = namedtuple('AssetAffinity', 'asset_id tax_group_id priority')
 
+
+CURRENT_DB_VERSION = 1
+
 class Database:
     def __init__(self):
-        self.__conn = create_db_conn()
+        this_file_path = path.abspath(__file__)
+        this_dir = path.dirname(this_file_path)
+        database_path = path.join(this_dir, "rebalance.db")
+
+        self.__conn = create_db_conn(database_path)
+
+        if self.get_db_version() < CURRENT_DB_VERSION:
+            script_path = path.join(this_dir, "rebalancer_v1.sql")
+            with open(script_path, "r") as f:
+                self.__conn.executescript(f.read())
+                self.__conn.commit()
 
     def __enter__(self):
         return self
@@ -61,6 +62,9 @@ class Database:
         row = cur.fetchone()
 
         return None if row is None else result_type(row)
+
+    def get_db_version(self):
+        return self.__return_one(lambda x: x[0], "PRAGMA user_version")
 
     def get_asset_targets(self, user_hash):
         cmd = "SELECT Asset, TargetDeciPercent FROM AssetTargetsMap WHERE User == ?"
