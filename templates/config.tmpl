@@ -17,8 +17,19 @@ table, th, td {
 
 <%
 asset_ids = dict(database.get_asset_abbreviations())
-portfolio = session.get_portfolio()
-assets = sorted(portfolio.keys(), key=lambda x: asset_ids[x])
+securities = session.get_securities_db()
+unsorted_assets = set()
+
+for entry in session.get_account_entries():
+    try:
+        asset = securities.get_asset_class(entry.symbol)
+        unsorted_assets.add(asset)
+    except KeyError:
+        pass
+    end
+end
+
+assets = sorted(unsorted_assets, key=lambda x: asset_ids[x])
 %>
 
 % include('templates/account_config_editor.tmpl', account_entries = session.get_account_entries(), database = database)

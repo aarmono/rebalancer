@@ -63,6 +63,9 @@ class Session:
     def get_portfolio(self):
         return self.__portfolio
 
+    def get_securities_db(self):
+        return self.__securities_db
+
     def get_rebalancer(self):
         return self.__rebalancer
 
