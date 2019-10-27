@@ -39,18 +39,8 @@ table, th, td {
   <input type="submit" value="Rebalance" />
 </form>
 
-<h1>Adjust Asset Affinity</h1>
-
-<form action="/asset_affinity" method="post" enctype="multipart/form-data">
-  <p>
-    <label for="user_token">Token (<a href="/get_token">Get Token</a>): </label>
-    <input type="text" name="user_token" />
-  </p>
-  <input type="submit" value="Assign Asset Affinity" />
-</form>
-
-<h1>Add Accounts</h1>
-<form action="/account_config" method="post" enctype="multipart/form-data">
+<h1>Configure</h1>
+<form action="/configure" method="post" enctype="multipart/form-data">
   <p>
     <label for="upload">Select a file: </label>
     <input type="file" name="upload" />
@@ -60,22 +50,7 @@ table, th, td {
     <input type="text" name="user_token" />
   </p>
   <p>
-    <input type="submit" value="Add Accounts" />
-  </p>
-</form>
-
-<h1>Adjust Target Allocation</h1>
-<form action="/target_config" method="post" enctype="multipart/form-data">
-  <p>
-    <label for="upload">Select a file: </label>
-    <input type="file" name="upload" />
-  </p>
-  <p>
-    <label for="user_token">Token (<a href="/get_token">Get Token</a>): </label>
-    <input type="text" name="user_token" />
-  </p>
-  <p>
-    <input type="submit" value="Adjust Targets" />
+    <input type="submit" value="Configure" />
   </p>
 </form>
 

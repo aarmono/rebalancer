@@ -50,12 +50,35 @@ def result():
                     taxable_credit=taxable_credit,
                     tax_deferred_credit=tax_deferred_credit)
 
+@route('/configure', method='POST')
+def configure_show():
+    user_token = request.forms.get('user_token')
+    upload     = request.files.get('upload')
+
+    name, ext = os.path.splitext(upload.filename)
+    if ext not in ('.csv'):
+        return 'File extension not allowed.'
+
+    hashed_token_system_salt = hash_user_token(user_token)
+
+    with Database() as db:
+        salt = db.get_user_salt(user_hash = hashed_token_system_salt)
+        if salt is None:
+            db.add_user(user_hash = hashed_token_system_salt)
+
+        session = Session(user_token, upload.file, db)
+
+        return template('templates/config.tmpl', user_token = user_token, session = session, db = db)
+
+
 @route('/asset_affinity', method='POST')
 def asset_affinity_show():
     token = request.forms.get('user_token')
 
-    return template('templates/asset_config.tmpl',
-                    user_token=token)
+    with Database() as db:
+        return template('templates/asset_config.tmpl',
+                        user_token=token,
+                        db=db)
 
 @route('/asset_affinity/update', method='POST')
 def asset_affinity_update():

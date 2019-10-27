@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+<title>Account Configuration</title>
+<body>
+
+<%
+tax_groups = list(db.get_tax_groups())
+%>
+
+<form action="/config/update" method="post" enctype="multipart/form-data">
+
+<input type="hidden" name="user_token" value="{{user_token}}" />
+
+% include('templates/account_config_editor.tmpl', account_entries = session.get_account_entries(), db = db)
+
+<input type="submit" value="Update Config" />
+</form>
+
+<p>
+  <a href="/">Go Home</a>
+</p>
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+
+<%
+from decimal import Decimal
+from collections import OrderedDict
+
+accounts = OrderedDict()
+for entry in account_entries:
+    if entry.account_name not in accounts:
+        accounts[entry.account_name] = []
+        accounts.move_to_end(entry.account_name)
+    end
+
+    accounts[entry.account_name].append((entry.symbol, entry.description))
+end
+
+tax_groups = list(db.get_tax_groups())
+%>
+
+<h1>Configure Accounts</h1>
+
+% for (account, symbols) in accounts.items():
+<h2>{{account}}</h2>
+
+<table>
+  <tr>
+    <th>Symbol</th>
+    <th>Description</th>
+  </tr>
+  % for (symbol, description) in symbols:
+  <tr>
+    <td>{{symbol}}</td>
+    <td>{{description}}</td>
+  </tr>
+  %end
+</table>
+
+<p>
+  <label for="{{account}}|description">Description: </label>
+  % info = db.get_account_info(user_token, account)
+  <input type="text" name="{{account}}|description" value="{{info.description if info is not None else ''}}" />
+</p>
+
+<p>
+  <label for="{{account}}|tax_group">Tax Group: </label>
+  <select name="{{account}}|tax_group">
+    % for (tax_group, _) in tax_groups:
+    % selected = info is not None and tax_group == info.tax_status
+    <option value="{{tax_group}}" {{!'selected="selected"' if selected else ''}}>{{tax_group}}</option>
+    %end
+    <option value="IGNORE">Ignore</option>
+  </select>
+</p>
+
+% end

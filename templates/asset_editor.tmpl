@@ -24,10 +24,6 @@ num_assets = len(assets)
 
 <h1>Tax Affinity Configuration</h1>
 
-<form action="/asset_affinity/update" method="post" enctype="multipart/form-data">
-
-<input type="hidden" name="user_token" value="{{user_token}}">
-
 % for tax_status in tax_groups:
 
     <h2>{{tax_status}}</h2>
@@ -61,5 +57,3 @@ num_assets = len(assets)
         % end
 
     % end
-
-<input type="submit" value="Update Affinities" />
