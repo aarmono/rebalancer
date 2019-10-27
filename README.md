@@ -169,3 +169,16 @@ and csv file under the "Rebalance" section. There are three rebalancing modes
   IRA, 401(k)) accounts. This is slightly safer than "Rebalance everything" but
   still should be *used with caution* as it too will recommend transactions that
   may *completely change* your portfolio.
+
+The "Credit to taxable account" and "Credit to tax-deferred account" allow
+dollar amounts to be added to the sweep accounts of the taxable and
+tax-deferred accounts, respectively. This is useful to buy securities using
+funds which have not settled* yet, as the csv files only show settled funds in
+the sweep accounts. A side effect of this behavior is that, after a purchase is
+made, the sweep account entries in the csv file will show the funds which were
+used to make the purchase until that purchase settles. Negative credits can be
+used to compensate for this.
+
+\* Trading with unsettled funds can result in cash account trading violations
+and should be done with caution. Read and understand all warnings shown on the
+Fidelity site.
