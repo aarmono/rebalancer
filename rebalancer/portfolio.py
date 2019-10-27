@@ -75,6 +75,7 @@ class Account:
             t = Transaction(Transaction.SELL, symbol, value, cost_per_share, shares)
             ret.append(t)
 
+        unoptomized_sale_funds = Decimal(0.0)
         has_mutual_funds = False
         buy_symbols = {}
         for (asset, value) in buy_asset_transactions.items():
@@ -94,10 +95,25 @@ class Account:
                 shares = value / cost_per_share
 
             buy_symbols[symbol] = (shares, cost_per_share)
+            unoptomized_sale_funds += shares * cost_per_share
 
         if not has_mutual_funds:
             buy_symbols = compute_minimal_remainder_purchase(buy_symbols,
                                                              available_funds)
+        else:
+            # Evenly split the remaining funds between all mutual funds in
+            # the account. Since the remaining amount should be small (price
+            # of one share) this should not affect the portfolio composition
+            mutual_fund_symbols = list(filter(self.__security_db.supports_fractional_shares,
+                                              buy_symbols.keys()))
+            num_mutual_funds = len(mutual_fund_symbols)
+            total_remaining_funds = available_funds - unoptomized_sale_funds
+            funds_per_mutual_fund = round_cents(total_remaining_funds / num_mutual_funds)
+            for symbol in mutual_fund_symbols:
+                (shares, cost_per_share) = buy_symbols[symbol]
+                shares += (funds_per_mutual_fund / cost_per_share)
+                buy_symbols[symbol] = (shares, cost_per_share)
+
 
         for (symbol, (shares, cost_per_share)) in buy_symbols.items():
             value = shares * cost_per_share
