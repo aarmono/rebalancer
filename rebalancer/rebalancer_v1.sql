@@ -54,7 +54,7 @@ CREATE TABLE Targets
     FOREIGN KEY("AssetID") REFERENCES Assets("ID") ON DELETE CASCADE,
 
     CONSTRAINT AssetUniqueByUser PRIMARY KEY (User, AssetID)
-);
+) WITHOUT ROWID;
 
 CREATE TABLE Accounts
 (
@@ -76,7 +76,7 @@ CREATE TABLE AssetAffinities
     FOREIGN KEY("TaxGroupID") REFERENCES TaxGroups("ID") ON DELETE CASCADE,
 
     CONSTRAINT RowUniqueness PRIMARY KEY (User, AssetID, TaxGroupID)
-);
+) WITHOUT ROWID;
 
 CREATE VIEW AssetGroupsMap
 AS
