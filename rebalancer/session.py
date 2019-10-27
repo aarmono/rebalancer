@@ -46,6 +46,7 @@ class Session:
                     info = self.__get_account_info(db, account_entry.account_name)
                     if info is not None:
                         current_value = account_entry.current_value
+                        description = info.description if info.description is not None else account_entry.account_name
 
                         if account_entry.is_sweep:
                             if taxable_credit is not None and \
@@ -55,7 +56,7 @@ class Session:
                                  info.tax_status == TaxStatus.TAX_DEFERRED:
                                 current_value += tax_deferred_credit
 
-                        self.__portfolio.add_position(info.description,
+                        self.__portfolio.add_position(description,
                                                       info.tax_status,
                                                       account_entry.symbol,
                                                       current_value)
