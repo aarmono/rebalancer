@@ -104,8 +104,10 @@ class Account:
             # Evenly split the remaining funds between all mutual funds in
             # the account. Since the remaining amount should be small (price
             # of one share) this should not affect the portfolio composition
-            mutual_fund_symbols = list(filter(self.__security_db.supports_fractional_shares,
-                                              buy_symbols.keys()))
+            def filt(s): return self.__security_db.supports_fractional_shares(s) and \
+                                self.__security_db.get_asset_class(s) != "Cash"
+
+            mutual_fund_symbols = list(filter(filt, buy_symbols.keys()))
             num_mutual_funds = len(mutual_fund_symbols)
             total_remaining_funds = available_funds - unoptomized_sale_funds
             funds_per_mutual_fund = round_cents(total_remaining_funds / num_mutual_funds)
