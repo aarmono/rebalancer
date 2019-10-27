@@ -70,16 +70,6 @@ def configure_show():
 
         return template('templates/config.tmpl', user_token = user_token, session = session, db = db)
 
-
-@route('/asset_affinity', method='POST')
-def asset_affinity_show():
-    token = request.forms.get('user_token')
-
-    with Database() as db:
-        return template('templates/asset_config.tmpl',
-                        user_token=token,
-                        db=db)
-
 @route('/asset_affinity/update', method='POST')
 def asset_affinity_update():
     token = request.forms.get('user_token')
@@ -105,18 +95,6 @@ def asset_affinity_update():
 
     return template('templates/asset_config.tmpl',
                     user_token=token)
-
-@route('/account_config', method='POST')
-def account_config_show():
-    token = request.forms.get('user_token')
-    upload = request.files.get('upload')
-    name, ext = os.path.splitext(upload.filename)
-    if ext not in ('.csv'):
-        return 'File extension not allowed.'
-
-    return template('templates/account_config.tmpl',
-                    user_token=token,
-                    portfolio_file=upload.file)
 
 @route('/account_config/update', method='POST')
 def account_config_update():
@@ -154,28 +132,6 @@ def account_config_update():
     return template('templates/account_config_display.tmpl',
                     user_token=token,
                     accounts=list(account_info.keys()))
-
-@route('/target_config', method='POST')
-def target_config():
-    token = request.forms.get('user_token')
-    upload = request.files.get('upload')
-    name, ext = os.path.splitext(upload.filename)
-    if ext not in ('.csv'):
-        return 'File extension not allowed.'
-
-    session = Session(token, upload.file)
-    portfolio = session.get_portfolio()
-    account_target = session.get_account_target()
-
-    assets = None
-    with Database() as db:
-        asset_ids = dict(db.get_asset_abbreviations())
-        assets = sorted(portfolio.keys(), key=lambda x: asset_ids[x])
-
-    return template('templates/target_asset_config.tmpl',
-                    user_token=token,
-                    assets=assets,
-                    account_target=account_target)
 
 @route('/target_config/update', method='POST')
 def target_config():
