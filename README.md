@@ -11,7 +11,7 @@ recommending that you invest in any of them.
 
 The default asset allocation is a *high-risk, high-volatility* one comprised
 of large percentages of US Stock, International Stock, and Long-term Bonds.
-Inveesting is a highly personal activity, and decisions should be carefully
+Investing is a highly personal activity, and decisions should be carefully
 made based on your own personal financial situation and risk tolerance. The
 [Bogleheads forum](https://www.bogleheads.org/forum/index.php) is a good place
 to start for general knowledge. For more specialized information better suited
@@ -30,7 +30,7 @@ with multiple securities each comprising a fixed percentage of the portfolio.
 As money flows into the portfolio, the tool is able to calculate which securities
 to buy to maintain these percentages. This tool additionally attempts to maintain
 a target ratio of securities within a broad grouping (eg. stocks, bonds). There
-are three main concpets the tool uses to maintain a portfolio: Securities,
+are three main concepts the tool uses to maintain a portfolio: Securities,
 Asset Classes, and Asset Groups.
 
 **Securities** are a stock or mutual fund/ETF share. They have a specific
@@ -42,7 +42,8 @@ multiple Securities which map to an Asset Class (eg. a TSM mutual fund and TSM
 ETF). The tool treats Securities with the same Asset Class as functionally*
 equivalent and interchangeable. If one has individual stocks in their portfolio,
 each stock should have its own Asset Class as two stocks would not be considered
-functionally equivalent.
+functionally equivalent since they would not necessarily have similar performance
+characteristics.
 
 \* I have deliberately avoided using the term "substantially equivalent" as
 that is a term the IRS uses when defining a "wash sale". I make no claims as
@@ -59,7 +60,7 @@ multiple Bond Assets and one is below its target, the tool will de-prioritize
 a purchase of that Asset if the overall target percentage for Bond Assets is met.
 
 These concepts are all basic to the
-[Bogleheads investment philosopy](https://www.bogleheads.org/wiki/Bogleheads%C2%AE_investment_philosophy),
+[Bogleheads investment philosophy](https://www.bogleheads.org/wiki/Bogleheads%C2%AE_investment_philosophy),
 and the original version of rebalancer was a command line tool which managed my
 taxable investment portfolio. An
 [advanced topic](https://www.bogleheads.org/wiki/Tax-efficient_fund_placement)
@@ -138,7 +139,7 @@ author runs the program on his home network.
 
 When accessing the site for the first time, it is highly recommended that
 a token be obtained using the "Get Token" link. Once a token is saved, input
-it into the "Token" field in the "Configure" section and selct a csv file to
+it into the "Token" field in the "Configure" section and select a csv file to
 upload. The tool will display a page with all the accounts and their underlying
 securities to allow a Tax Group and Description to be assigned. Select "Ignore"
 to have the tool skip over the account when performing its calculations. 
@@ -161,7 +162,7 @@ and csv file under the "Rebalance" section. There are three rebalancing modes
      account (or credits specified in the "Credit" fields)
 * **Rebalance everything** will rebalance all accounts using the target
   asset allocations and tax affinities configured earlier. This feature should
-  be *used with caution* as it will recommend transactions thay may *completely
+  be *used with caution* as it will recommend transactions they may *completely
   change* your investment portfolio and result in extremely high capital gains.
 * **Rebalance without selling in Taxable** will rebalance the accounts in such
   a way that it will only recommend selling assets in tax-advantaged (ie. 
