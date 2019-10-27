@@ -93,7 +93,6 @@ def configure_update():
         salt = database.get_user_salt(user_token = user_token)
         hashed_token_user_salt = hash_user_token_with_salt(user_token, salt = salt)
 
-        tax_group_ids = dict(database.get_tax_groups())
         asset_ids = dict(database.get_asset_abbreviations())
 
         for (key, value) in request.forms.items():
@@ -105,15 +104,15 @@ def configure_update():
                 elif section == "affinity":
                     (tax_group, asset) = tuple(subelement.split('|'))
                     if value != "DISABLE":
-                        val = AssetAffinity(asset_ids[asset],
-                                            tax_group_ids[tax_group],
+                        val = AssetAffinity(asset,
+                                            tax_group,
                                             int(value))
                         affinities.append(val)
                 elif section == "allocation":
                     asset_set.add(subelement)
 
                     deci_percent = int(Decimal(value) * 10)
-                    asset_deci_perentages[asset_ids[subelement]] = deci_percent
+                    asset_deci_perentages[subelement] = deci_percent
             except Exception as ex:
                 print(ex)
                 pass
@@ -126,14 +125,13 @@ def configure_update():
             tax_group = account_map.get('tax_group')
             description = account_map.get('description')
             
-            if tax_group is None or tax_group not in tax_group_ids:
+            if tax_group is None or tax_group == "IGNORE":
                 database.delete_account(user_token, account)
             else:
-                tax_group_id = tax_group_ids[tax_group]
                 database.add_account(user_token,
                                      account,
                                      description,
-                                     tax_group_id)
+                                     tax_group)
 
         database.set_asset_targets(hashed_token_user_salt,
                                    asset_deci_perentages.items())

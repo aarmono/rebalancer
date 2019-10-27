@@ -27,7 +27,7 @@ Security = namedtuple('Security', 'symbol asset asset_group')
 AccountInfo = namedtuple('AccountInfo', 'description tax_status')
 IDEntry = namedtuple('IDEntry', 'name id')
 
-AssetAffinity = namedtuple('AssetAffinity', 'asset_id tax_group_id priority')
+AssetAffinity = namedtuple('AssetAffinity', 'asset tax_group priority')
 
 
 DB_UPGRADE_FILENAMES = [
@@ -82,9 +82,9 @@ class Database:
                           "DELETE FROM Targets WHERE User == ?",
                           user_hash)
 
-        for (asset_id, target_deci_percent) in asset_targets:
-            cmd = "INSERT INTO Targets (User, AssetID, TargetDeciPercent) VALUES (?, ?, ?)"
-            self.__return_one(str, cmd, user_hash, asset_id, target_deci_percent)
+        for (asset, target_deci_percent) in asset_targets:
+            cmd = "INSERT INTO Targets (User, AssetID, TargetDeciPercent) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?)"
+            self.__return_one(str, cmd, user_hash, asset, target_deci_percent)
 
     def get_asset_tax_affinity(self, user_hash):
         cmd = "SELECT Asset, TaxGroup FROM AssetAffinitiesMap WHERE User == ? ORDER BY Asset, Priority"
@@ -126,7 +126,7 @@ class Database:
         cmd = "INSERT INTO UserSalts (User) VALUES (?)"
         self.__return_one(str, cmd, user_hash)
 
-    def add_account(self, user_token, account, description, tax_group_id, salt = None):
+    def add_account(self, user_token, account, description, tax_group, salt = None):
         if salt is None:
             salt = self.get_user_salt(user_token = user_token)
 
@@ -139,12 +139,12 @@ class Database:
                                                                 description,
                                                                 salt = salt)
 
-        cmd = "REPLACE INTO Accounts (ID, Description, TaxGroupID) VALUES (?, ?, ?)"
+        cmd = "REPLACE INTO Accounts (ID, Description, TaxGroupID) VALUES (?, ?, (SELECT ID From TaxGroups WHERE Name == ?))"
         self.__return_one(str,
                           cmd,
                           hashed_account,
                           encrypted_description,
-                          tax_group_id)
+                          tax_group)
 
     def delete_account(self, user_token, account, salt = None):
         if salt is None:
@@ -186,12 +186,12 @@ class Database:
                           salted_token)
 
         for affinity in asset_affinities:
-            cmd = "INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES (?, ?, ?, ?)"
+            cmd = "INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES (?, (SELECT ID FROM TaxGroups WHERE Name == ?), (SELECT ID FROM Assets WHERE Abbreviation == ?), ?)"
             self.__return_one(''.join,
                               cmd,
                               salted_token,
-                              affinity.tax_group_id,
-                              affinity.asset_id,
+                              affinity.tax_group,
+                              affinity.asset,
                               affinity.priority)
 
     def add_symbol(self, symbol, asset):
