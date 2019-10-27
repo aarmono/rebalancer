@@ -91,6 +91,10 @@ class Database:
         cmd = "SELECT Symbol, Asset, AssetGroup from SecuritiesMap"
         return self.__return_iter(Security._make, cmd)
 
+    def get_assets(self):
+        cmd = "SELECT Asset, AssetGroup FROM AssetGroupsMap"
+        return self.__return_iter(tuple, cmd)
+
     def get_asset_abbreviations(self):
         cmd = "SELECT Abbreviation, ID from Assets"
         return self.__return_iter(IDEntry._make, cmd)
@@ -182,6 +186,18 @@ class Database:
                               affinity.tax_group_id,
                               affinity.asset_id,
                               affinity.priority)
+
+    def add_symbol(self, symbol, asset_id):
+        cmd = "INSERT INTO Securities (Symbol, AssetID) VALUES (?, ?)"
+        self.__return_one(str, cmd, symbol, asset_id)
+
+    def add_asset(self, asset, asset_group_id):
+        cmd = "INSERT INTO Assets (Abbreviation, AssetGroupID) VALUES (?, ?)"
+        self.__return_one(str, cmd, asset, asset_group_id)
+
+    def add_asset_group(self, asset_group):
+        cmd = "INSERT INTO AssetGroups (Name) VALUES (?)"
+        self.__return_one(str, cmd, asset_group)
 
     def commit(self):
         self.__conn.commit()

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+}
+</style>
+</head>
+<title>Security Configuration</title>
+<body>
+
+<%
+securities = {}
+assets = {}
+asset_groups = set()
+
+for security in database.get_securities():
+    securities[security.symbol] = security.asset
+    assets[security.asset] = security.asset_group
+    asset_groups.add(security.asset_group)
+end
+
+assets.update(database.get_assets())
+asset_groups.update(map(lambda x: x[0], database.get_asset_groups()))
+
+securities = sorted(securities.items(), key=lambda x: x[1])
+assets = sorted(assets.items(), key=lambda x: x[1])
+asset_groups = sorted(asset_groups)
+%>
+
+<h1>Securities</h1>
+<table>
+  <tr>
+    <th>Symbol</th>
+    <th>Asset</th>
+  </tr>
+
+  % for (security, asset) in securities:
+  <tr>
+    <td>{{security}}</td>
+    <td>{{asset}}</td>
+  </tr>
+  %end
+</table>
+
+<form action="/security_configure/update" method="post" enctype="multipart/form-data">
+  <p>
+    <label for="symbol/symbol">New Symbol: </label>
+    <input type="text" name="symbol/symbol" />
+
+    <label for="symbol/asset_class">Asset Class: </label>
+    <select name="symbol/asset_class">
+      % for (asset, _) in assets:
+      <option value="{{asset}}">{{asset}}</option>
+      %end
+    </select>
+  </p>
+  <input type="submit" value="Add Symbol" />
+</form>
+
+
+<h1>Asset Classets</h1>
+<table>
+  <tr>
+    <th>Asset</th>
+    <th>Asset Group</th>
+  </tr>
+
+  % for (asset, asset_group) in assets:
+  <tr>
+    <td>{{asset}}</td>
+    <td>{{asset_group}}</td>
+  </tr>
+  %end
+</table>
+
+<form action="/security_configure/update" method="post" enctype="multipart/form-data">
+  <p>
+    <label for="asset/asset">New Asset: </label>
+    <input type="text" name="asset/asset" />
+
+    <label for="asset/asset_group">Asset Group: </label>
+    <select name="asset/asset_group">
+      % for asset_group in asset_groups:
+      <option value="{{asset_group}}">{{asset_group}}</option>
+      %end
+    </select>
+  </p>
+  <input type="submit" value="Add Asset" />
+</form>
+
+<h1>Asset Groups</h1>
+<table>
+  <tr>
+    <th>Asset Group</th>
+  </tr>
+
+  % for asset_group in asset_groups:
+  <tr>
+    <td>{{asset_group}}</td>
+  </tr>
+  %end
+</table>
+
+<form action="/security_configure/update" method="post" enctype="multipart/form-data">
+  <p>
+    <label for="asset_group/asset_group">New Asset Group: </label>
+    <input type="text" name="asset_group/asset_group"" />
+  </p>
+  <input type="submit" value="Add Asset Group" />
+</form>
+
+<p>
+  <a href="/">Go Home</a>
+</p>
+
+</body>
+</html>

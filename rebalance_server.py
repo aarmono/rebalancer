@@ -71,6 +71,7 @@ def configure_show():
         salt = database.get_user_salt(user_hash = hashed_token_system_salt)
         if salt is None:
             database.add_user(user_hash = hashed_token_system_salt)
+            database.commit()
 
         session = Session(user_token, database, upload.file)
 
@@ -148,6 +149,36 @@ def configure_update():
                         account_target = session.get_account_target(),
                         assets = assets,
                         database = database)
+
+@route('/security_configure')
+def security_configure():
+    with Database() as database:
+        return template('templates/security_config.tmpl', database = database)
+
+@route('/security_configure/update', method='POST')
+def security_configure_update():
+    with Database() as database:
+        if "symbol/symbol" in request.forms:
+            symbol = request.forms.get("symbol/symbol")
+            asset = request.forms.get("symbol/asset_class")
+
+            asset_ids = dict(database.get_asset_abbreviations())
+            database.add_symbol(symbol, asset_ids[asset])
+        elif "asset/asset" in request.forms:
+            asset = request.forms.get("asset/asset")
+            asset_group = request.forms.get("asset/asset_group")
+
+            asset_groups = dict(database.get_asset_groups())
+            database.add_asset(asset, asset_groups[asset_group])
+        elif "asset_group/asset_group" in request.forms:
+            asset_group = request.forms.get("asset_group/asset_group")
+
+            database.add_asset_group(asset_group)
+
+        database.commit()
+
+        return template('templates/security_config.tmpl', database = database)
+
 
 def main():
     parser = argparse.ArgumentParser(description='Rebalance server')
