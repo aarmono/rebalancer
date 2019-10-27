@@ -10,7 +10,7 @@ tax_groups = list(database.get_tax_groups())
 <p>
   <label for="accounts/{{account}}|description">Description: </label>
   % info = database.get_account_info(user_token, account)
-  % description = info.description if info.description is not None else ''
+  % description = info.description if info is not None and info.description is not None else ''
   <input type="text" name="accounts/{{account}}|description" value="{{description}}" />
 </p>
 
