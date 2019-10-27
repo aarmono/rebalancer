@@ -11,15 +11,13 @@ table, th, td {
 <title>Account Configuration</title>
 <body>
 
-<%
-tax_groups = list(db.get_tax_groups())
-%>
-
 <form action="/config/update" method="post" enctype="multipart/form-data">
 
 <input type="hidden" name="user_token" value="{{user_token}}" />
 
 % include('templates/account_config_editor.tmpl', account_entries = session.get_account_entries(), db = db)
+% include('templates/target_asset_editor.tmpl', account_target = session.get_account_target(), portfolio = session.get_portfolio(), database = db)
+% include('templates/asset_editor.tmpl', account_target = session.get_account_target(), db = db)
 
 <input type="submit" value="Update Config" />
 </form>

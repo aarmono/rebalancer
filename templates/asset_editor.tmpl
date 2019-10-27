@@ -1,19 +1,16 @@
 
 <%
 from decimal import Decimal
-from rebalance import *
-
-account_target = AccountTarget(user_token, SecurityDatabase())
 
 asset_ids = {}
 tax_groups = []
-with Database() as db:
-    for (name, _) in db.get_tax_groups():
-        tax_groups.append(name)
-    end
 
-    for (asset, id) in db.get_asset_abbreviations():
-        asset_ids[asset] = id
+for (name, _) in db.get_tax_groups():
+    tax_groups.append(name)
+end
+
+for (asset, id) in db.get_asset_abbreviations():
+    asset_ids[asset] = id
 end
 
 assets = sorted(account_target.get_target_asset_percentages().keys(),
@@ -22,9 +19,9 @@ num_assets = len(assets)
 
 %>
 
-<h1>Tax Affinity Configuration</h1>
+<h1>Configure Asset Affinity</h1>
 
-% for tax_status in tax_groups:
+    % for tax_status in tax_groups:
 
     <h2>{{tax_status}}</h2>
 
