@@ -162,18 +162,30 @@ def security_configure_update():
             symbol = request.forms.get("symbol/symbol")
             asset = request.forms.get("symbol/asset_class")
 
-            asset_ids = dict(database.get_asset_abbreviations())
-            database.add_symbol(symbol, asset_ids[asset])
+            if symbol is not None and len(symbol) > 0:
+                database.add_symbol(symbol, asset)
+
+            for symbol in request.forms.getall('symbol/delete'):
+                database.delete_symbol(symbol)
+
         elif "asset/asset" in request.forms:
             asset = request.forms.get("asset/asset")
             asset_group = request.forms.get("asset/asset_group")
 
-            asset_groups = dict(database.get_asset_groups())
-            database.add_asset(asset, asset_groups[asset_group])
+            if asset is not None and len(asset) > 0:
+                database.add_asset(asset, asset_group)
+
+            for asset in request.forms.getall('asset/delete'):
+                database.delete_asset(asset)
+
         elif "asset_group/asset_group" in request.forms:
             asset_group = request.forms.get("asset_group/asset_group")
 
-            database.add_asset_group(asset_group)
+            if asset_group is not None and len(asset_group) > 0:
+                database.add_asset_group(asset_group)
+
+            for asset_group in request.forms.getall('asset_group/delete'):
+                database.delete_asset_group(asset_group)
 
         database.commit()
 

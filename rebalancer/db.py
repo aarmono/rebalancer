@@ -30,6 +30,10 @@ IDEntry = namedtuple('IDEntry', 'name id')
 AssetAffinity = namedtuple('AssetAffinity', 'asset_id tax_group_id priority')
 
 
+DB_UPGRADE_FILENAMES = [
+    "rebalancer_v1.sql"
+]
+
 CURRENT_DB_VERSION = 1
 
 class Database:
@@ -40,11 +44,14 @@ class Database:
 
         self.__conn = create_db_conn(database_path)
 
-        if self.get_db_version() < CURRENT_DB_VERSION:
-            script_path = path.join(this_dir, "rebalancer_v1.sql")
+        db_version = self.get_db_version()
+        while db_version < len(DB_UPGRADE_FILENAMES):
+            script_path = path.join(this_dir, DB_UPGRADE_FILENAMES[db_version])
             with open(script_path, "r") as f:
                 self.__conn.executescript(f.read())
                 self.__conn.commit()
+
+            db_version = self.get_db_version()
 
     def __enter__(self):
         return self
@@ -187,16 +194,28 @@ class Database:
                               affinity.asset_id,
                               affinity.priority)
 
-    def add_symbol(self, symbol, asset_id):
-        cmd = "INSERT INTO Securities (Symbol, AssetID) VALUES (?, ?)"
-        self.__return_one(str, cmd, symbol, asset_id)
+    def add_symbol(self, symbol, asset):
+        cmd = "INSERT INTO Securities (Symbol, AssetID) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?))"
+        self.__return_one(str, cmd, symbol, asset)
 
-    def add_asset(self, asset, asset_group_id):
-        cmd = "INSERT INTO Assets (Abbreviation, AssetGroupID) VALUES (?, ?)"
-        self.__return_one(str, cmd, asset, asset_group_id)
+    def delete_symbol(self, symbol):
+        cmd = "DELETE FROM Securities WHERE Symbol == ?"
+        self.__return_one(str, cmd, symbol)
+
+    def add_asset(self, asset, asset_group):
+        cmd = "INSERT INTO Assets (Abbreviation, AssetGroupID) VALUES (?, (SELECT ID FROM AssetGroups WHERE Name == ?))"
+        self.__return_one(str, cmd, asset, asset_group)
+
+    def delete_asset(self, asset):
+        cmd = "DELETE FROM Assets WHERE Abbreviation == ?"
+        self.__return_one(str, cmd, asset)
 
     def add_asset_group(self, asset_group):
         cmd = "INSERT INTO AssetGroups (Name) VALUES (?)"
+        self.__return_one(str, cmd, asset_group)
+
+    def delete_asset_group(self, asset_group):
+        cmd = "DELETE FROM AssetGroups WHERE Name == ?"
         self.__return_one(str, cmd, asset_group)
 
     def commit(self):

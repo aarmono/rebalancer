@@ -31,21 +31,23 @@ asset_groups = sorted(asset_groups)
 %>
 
 <h1>Securities</h1>
-<table>
-  <tr>
-    <th>Symbol</th>
-    <th>Asset</th>
-  </tr>
-
-  % for (security, asset) in securities:
-  <tr>
-    <td>{{security}}</td>
-    <td>{{asset}}</td>
-  </tr>
-  %end
-</table>
-
 <form action="/security_configure/update" method="post" enctype="multipart/form-data">
+  <table>
+    <tr>
+      <th>Delete?</th>
+      <th>Symbol</th>
+      <th>Asset</th>
+    </tr>
+
+    % for (security, asset) in securities:
+    <tr>
+      <td><input type = "checkbox" name = "symbol/delete" value = "{{security}}" /></td>
+      <td>{{security}}</td>
+      <td>{{asset}}</td>
+    </tr>
+    %end
+  </table>
+
   <p>
     <label for="symbol/symbol">New Symbol: </label>
     <input type="text" name="symbol/symbol" />
@@ -57,26 +59,28 @@ asset_groups = sorted(asset_groups)
       %end
     </select>
   </p>
-  <input type="submit" value="Add Symbol" />
+  <input type="submit" value="Update Symbols" />
 </form>
 
 
 <h1>Asset Classets</h1>
-<table>
-  <tr>
-    <th>Asset</th>
-    <th>Asset Group</th>
-  </tr>
-
-  % for (asset, asset_group) in assets:
-  <tr>
-    <td>{{asset}}</td>
-    <td>{{asset_group}}</td>
-  </tr>
-  %end
-</table>
-
 <form action="/security_configure/update" method="post" enctype="multipart/form-data">
+  <table>
+    <tr>
+      <th>Delete</th>
+      <th>Asset</th>
+      <th>Asset Group</th>
+    </tr>
+
+    % for (asset, asset_group) in assets:
+    <tr>
+      <td><input type = "checkbox" name = "asset/delete" value = "{{asset}}" /></td>
+      <td>{{asset}}</td>
+      <td>{{asset_group}}</td>
+    </tr>
+    %end
+  </table>
+
   <p>
     <label for="asset/asset">New Asset: </label>
     <input type="text" name="asset/asset" />
@@ -88,28 +92,30 @@ asset_groups = sorted(asset_groups)
       %end
     </select>
   </p>
-  <input type="submit" value="Add Asset" />
+  <input type="submit" value="Update Assets" />
 </form>
 
 <h1>Asset Groups</h1>
-<table>
-  <tr>
-    <th>Asset Group</th>
-  </tr>
-
-  % for asset_group in asset_groups:
-  <tr>
-    <td>{{asset_group}}</td>
-  </tr>
-  %end
-</table>
-
 <form action="/security_configure/update" method="post" enctype="multipart/form-data">
+  <table>
+    <tr>
+      <th>Delete?</th>
+      <th>Asset Group</th>
+    </tr>
+
+    % for asset_group in asset_groups:
+    <tr>
+      <td><input type = "checkbox" name = "asset_group/delete" value = "{{asset_group}}" /></td>
+      <td>{{asset_group}}</td>
+    </tr>
+    %end
+  </table>
+
   <p>
     <label for="asset_group/asset_group">New Asset Group: </label>
     <input type="text" name="asset_group/asset_group"" />
   </p>
-  <input type="submit" value="Add Asset Group" />
+  <input type="submit" value="Update Asset Groups" />
 </form>
 
 <p>
