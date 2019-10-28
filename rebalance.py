@@ -149,6 +149,13 @@ def main():
     (options, args) = parser.parse_args()
     rebalance_mode = RebalanceMode.NO_SELL if options.no_sell else RebalanceMode.FULL
 
+    apikey = None
+    try:
+      with open('.quotekey', 'r') as f:
+        apikey = f.read()
+    except Exception:
+      pass
+
     global VERBOSE
     VERBOSE = options.verbose
 
@@ -158,7 +165,7 @@ def main():
 
     user_token = get_token_from_file()
     with Database() as database:
-        session = Session(user_token, database, args[0], credit)
+        session = Session(user_token, database, args[0], credit, None, apikey)
 
         portfolio = session.get_portfolio()
         rebalancer = session.get_rebalancer()
