@@ -57,7 +57,7 @@ class SecurityDatabase:
             current_price = get_current_price_from_web(symbol, self.__quote_key)
             self.__current_prices[symbol] = current_price
 
-        return self.__current_prices[symbol]
+        return self.__current_prices.get(symbol, Decimal(10.00))
 
     def supports_fractional_shares(self, symbol):
         return is_mutual_fund(symbol) or \
