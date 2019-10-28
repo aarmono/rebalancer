@@ -62,11 +62,45 @@ class Rebalancer:
 
     def __prioritize_assets_by_target_value(self, portfolio, reverse=False):
         target_asset_values = self.__account_target.get_target_asset_values(portfolio)
-        # Assets with higher target values have higher priority, so
-        # reverse the sort order
+
+        def cmp_fun(a, b):
+            if target_asset_values[a] < target_asset_values[b]:
+                return 1
+            elif target_asset_values[a] > target_asset_values[b]:
+                return -1
+            else:
+                # Check if the assets have the same primary tax affinity
+                a_affin = self.__account_target.get_asset_tax_affinity(a)[0]
+                b_affin = self.__account_target.get_asset_tax_affinity(b)[0]
+                if a_affin != b_affin:
+                    assets_by_tax_status = portfolio.assets_by_tax_status()
+                    a_val = assets_by_tax_status[a_affin].current_value()
+                    b_val = assets_by_tax_status[b_affin].current_value()
+
+                    # prioritize assets with affinities whose accounts have
+                    # lower total capacity
+                    if a_val < b_val:
+                        return -1
+                    elif b_val > a_val:
+                        return 1
+                    else:
+                        return 0
+                else:
+                    assets = self.__account_target.get_tax_group_asset_affinity(a_affin)
+                    a_idx = assets.index(a)
+                    b_idx = assets.index(b)
+                    # Prioritize assets with a higher priority within the
+                    # tax group
+                    if a_idx > b_idx:
+                        return 1
+                    elif a_idx < b_idx:
+                        return -1
+                    else:
+                        return 0
+
         return sorted(portfolio.keys(),
-                      key=lambda asset: target_asset_values[asset],
-                      reverse=not reverse)
+                      key=cmp_to_key(cmp_fun),
+                      reverse=reverse)
 
     def compute_target_asset_values(self, portfolio, rebalance_mode):
         rebalance_full = rebalance_mode == RebalanceMode.FULL
