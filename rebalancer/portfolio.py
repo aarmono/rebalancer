@@ -89,7 +89,7 @@ class Account:
             cost_per_share = self.__security_db.get_current_price(symbol)
             shares = None
             if not self.__security_db.supports_fractional_shares(symbol):
-                shares = Decimal(floor(value / cost_per_share))
+                shares = int(floor(value / cost_per_share))
             else:
                 has_mutual_funds = True
                 shares = value / cost_per_share
@@ -119,9 +119,10 @@ class Account:
 
         for (symbol, (shares, cost_per_share)) in buy_symbols.items():
             value = shares * cost_per_share
-            if is_mutual_fund(symbol):
-                cost_per_share = None
-                shares = None
+            if isinstance(shares, Decimal):
+                # This field is just for presentation purposes and isn't used
+                # for any calculations, so rounding is safe
+                shares = shares.quantize(Decimal('1.00'))
 
             t = Transaction(Transaction.BUY, symbol, value, cost_per_share, shares)
             ret.append(t)
