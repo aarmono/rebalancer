@@ -64,19 +64,24 @@ class Rebalancer:
         target_asset_values = self.__account_target.get_target_asset_values(portfolio)
 
         def cmp_fun(a, b):
-            if target_asset_values[a] < target_asset_values[b]:
+            a_affin = self.__account_target.get_asset_tax_affinity(a)[0]
+            b_affin = self.__account_target.get_asset_tax_affinity(b)[0]
+            assets_by_tax_status = portfolio.assets_by_tax_status()
+            a_val = assets_by_tax_status[a_affin].current_value()
+            b_val = assets_by_tax_status[b_affin].current_value()
+
+            a_ratio = target_asset_values[a] / a_val
+            b_ratio = target_asset_values[b] / b_val
+
+            # Prioritize assets which are a higher percentage of their
+            # target account space
+            if a_ratio < b_ratio:
                 return 1
             elif target_asset_values[a] > target_asset_values[b]:
                 return -1
             else:
                 # Check if the assets have the same primary tax affinity
-                a_affin = self.__account_target.get_asset_tax_affinity(a)[0]
-                b_affin = self.__account_target.get_asset_tax_affinity(b)[0]
                 if a_affin != b_affin:
-                    assets_by_tax_status = portfolio.assets_by_tax_status()
-                    a_val = assets_by_tax_status[a_affin].current_value()
-                    b_val = assets_by_tax_status[b_affin].current_value()
-
                     # prioritize assets with affinities whose accounts have
                     # lower total capacity
                     if a_val < b_val:
