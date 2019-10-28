@@ -97,13 +97,43 @@ BEGIN
     SET
         IsDefault = 1
     WHERE
-        Symbol == NEW.Symbol AND
+        Symbol  == NEW.Symbol   AND
+        AssetID == NEW.AssetID AND
         NOT EXISTS (SELECT
                         Symbol
                     FROM
                         Securities
                     WHERE
                         AssetID == NEW.AssetID AND
+                        IsDefault == 1);
+END;
+
+CREATE TRIGGER MadeDefaultOnAssetIDUpdateIfNotExists
+AFTER
+    UPDATE
+ON
+    Securities
+FOR EACH ROW WHEN
+    NEW.AssetID != OLD.AssetID
+BEGIN
+    UPDATE
+        Securities
+    SET
+        IsDefault = 1
+    WHERE
+        Symbol == (SELECT
+                       Symbol
+                   FROM
+                       Securities
+                   WHERE
+                       AssetID == OLD.AssetID
+                   LIMIT 1) AND
+        NOT EXISTS (SELECT
+                        Symbol
+                    FROM
+                        Securities
+                    WHERE
+                        AssetID == OLD.AssetID AND
                         IsDefault == 1);
 END;
 
