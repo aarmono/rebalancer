@@ -32,6 +32,10 @@ assets = sorted(assets.items(), key=lambda x: x[1])
 asset_groups = sorted(asset_groups)
 %>
 
+<p>
+  <a href="/">Go Home</a>
+</p>
+
 <h1>Securities</h1>
 <form action="/security_configure/update" method="post" enctype="multipart/form-data">
   <table>
@@ -134,10 +138,6 @@ asset_groups = sorted(asset_groups)
   </p>
   <input type="submit" value="Update Asset Groups" />
 </form>
-
-<p>
-  <a href="/">Go Home</a>
-</p>
 
 </body>
 </html>

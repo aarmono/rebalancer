@@ -30,6 +30,10 @@ table, th, td {
 <title>Rebalance Results</title>
 <body>
 
+<p>
+  <a href="/">Go Home</a>
+</p>
+
 <h1>Transactions</h1>
 
 %include('templates/transactions.tmpl', transaction_groups=portfolio_transactions)
@@ -49,11 +53,6 @@ table, th, td {
 <h1>Current Portfolio Composition</h1>
 
 % include('templates/portfolio.tmpl', portfolio=portfolio)
-
-
-<p>
-  <a href="/">Go Home</a>
-</p>
 
 </body>
 </html>
