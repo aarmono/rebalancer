@@ -95,7 +95,7 @@ def print_transactions(transaction_groups):
                     sale_total += transaction.amount()
 
                     if shares is not None and sell_price is not None:
-                        print("%8s: %12s (%5s shares @ %7s/share)" % (symbol,
+                        print("%8s: %12s (%8s shares @ %7s/share)" % (symbol,
                                                                      to_dollars(sale_value),
                                                                      shares,
                                                                      to_dollars(sell_price)))
@@ -117,7 +117,7 @@ def print_transactions(transaction_groups):
                     purchase_total += transaction.amount()
 
                     if shares is not None and sell_price is not None:
-                        print("%8s: %12s (%5s shares @ %7s/share)" % (symbol,
+                        print("%8s: %12s (%8s shares @ %7s/share)" % (symbol,
                                                                      to_dollars(sale_value),
                                                                      shares,
                                                                      to_dollars(sell_price)))
