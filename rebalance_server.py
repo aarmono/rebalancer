@@ -66,7 +66,7 @@ def result():
                               taxable_credit,
                               tax_deferred_credit,
                               QUOTE_KEY)
-            return template('templates/result.tmpl',
+            return template('templates/rebalance.tmpl',
                             user_token = token,
                             session = session,
                             rebalance_mode = rebalance_mode)
