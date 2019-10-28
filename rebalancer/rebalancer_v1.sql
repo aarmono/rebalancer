@@ -57,7 +57,7 @@ BEGIN
                     FROM
                         Securities
                     WHERE
-                        AssetID ==NEW.AssetID AND
+                        AssetID == NEW.AssetID AND
                         IsDefault == 1);
 END;
 
@@ -80,7 +80,7 @@ BEGIN
                     FROM
                         Securities
                     WHERE
-                        AssetID ==NEW.AssetID AND
+                        AssetID == NEW.AssetID AND
                         IsDefault == 1);
 END;
 
