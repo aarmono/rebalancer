@@ -46,18 +46,30 @@ def result():
     elif rebalance_mode_str == "NO_SELL":
         rebalance_mode = RebalanceMode.NO_SELL
 
+    hashed_token_system_salt = hash_user_token(token)
     with Database() as database:
-        session = Session(token,
-                          database,
-                          upload.file,
-                          taxable_credit,
-                          tax_deferred_credit,
-                          QUOTE_KEY)
+        salt = database.get_user_salt(user_hash = hashed_token_system_salt)
+        if salt is None:
+            database.add_user(user_hash = hashed_token_system_salt)
+            database.commit()
 
-        return template('templates/result.tmpl',
-                        user_token = token,
-                        session = session,
-                        rebalance_mode = rebalance_mode)
+            session = Session(token, database, upload.file)
+            return template('templates/config.tmpl',
+                            user_token = token,
+                            session = session,
+                            database = database)
+
+        else:
+            session = Session(token,
+                              database,
+                              upload.file,
+                              taxable_credit,
+                              tax_deferred_credit,
+                              QUOTE_KEY)
+            return template('templates/result.tmpl',
+                            user_token = token,
+                            session = session,
+                            rebalance_mode = rebalance_mode)
 
 @route('/configure', method='POST')
 def configure_show():
