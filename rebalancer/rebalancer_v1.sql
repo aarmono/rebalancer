@@ -2,7 +2,7 @@ BEGIN TRANSACTION;
 
 CREATE TABLE AssetGroups
 (
-    ID   INTEGER PRIMARY KEY,
+    ID   INTEGER NOT NULL PRIMARY KEY,
     Name TEXT    NOT NULL UNIQUE,
 
     CHECK (LENGTH(Name) > 0)
@@ -10,7 +10,7 @@ CREATE TABLE AssetGroups
 
 CREATE TABLE TaxGroups
 (
-    ID   INTEGER PRIMARY KEY,
+    ID   INTEGER NOT NULL PRIMARY KEY,
     Name TEXT    NOT NULL UNIQUE,
 
     CHECK (LENGTH(Name) > 0)
@@ -18,7 +18,7 @@ CREATE TABLE TaxGroups
 
 CREATE TABLE Assets
 (
-    ID           INTEGER     PRIMARY KEY,
+    ID           INTEGER     NOT NULL PRIMARY KEY,
     AssetGroupID INTEGER     NOT NULL,
     Abbreviation VARCHAR(16) NOT NULL UNIQUE,
 
@@ -29,13 +29,97 @@ CREATE TABLE Assets
 
 CREATE TABLE Securities
 (
-    Symbol  VARCHAR(8) NOT NULL PRIMARY KEY,
-    AssetID INTEGER    NOT NULL,
+    Symbol    VARCHAR(8) NOT NULL PRIMARY KEY,
+    AssetID   INTEGER    NOT NULL,
+    IsDefault BOOLEAN    NOT NULL DEFAULT 0,
 
     CHECK(LENGTH(Symbol) > 0),
 
     FOREIGN KEY("AssetID") REFERENCES Assets("ID") ON DELETE CASCADE
 ) WITHOUT ROWID;
+
+CREATE TRIGGER MadeDefaultOnInsertIfNotExists
+AFTER
+    INSERT
+ON
+    Securities
+FOR EACH ROW WHEN
+    NEW.IsDefault == 0
+BEGIN
+    UPDATE
+        Securities
+    SET
+        IsDefault = 1
+    WHERE
+        Symbol == NEW.Symbol AND
+        NOT EXISTS (SELECT
+                        Symbol
+                    FROM
+                        Securities
+                    WHERE
+                        AssetID ==NEW.AssetID AND
+                        IsDefault == 1);
+END;
+
+CREATE TRIGGER MadeDefaultOnUpdateIfNotExists
+AFTER
+    Update
+ON
+    Securities
+FOR EACH ROW WHEN
+    NEW.IsDefault == 0
+BEGIN
+    UPDATE
+        Securities
+    SET
+        IsDefault = 1
+    WHERE
+        Symbol == NEW.Symbol AND
+        NOT EXISTS (SELECT
+                        Symbol
+                    FROM
+                        Securities
+                    WHERE
+                        AssetID ==NEW.AssetID AND
+                        IsDefault == 1);
+END;
+
+CREATE TRIGGER ClearDefaultOnInsert
+AFTER
+    INSERT
+ON
+    Securities
+FOR EACH ROW WHEN
+    NEW.IsDefault != 0
+BEGIN
+    UPDATE
+        Securities
+    SET
+        IsDefault = 0
+    WHERE
+        Symbol    != NEW.Symbol  AND
+        AssetID   == NEW.AssetID AND
+        IsDefault != 0;
+END;
+
+CREATE TRIGGER ClearDefaultOnUpdate
+AFTER
+    UPDATE
+ON
+    Securities
+FOR EACH ROW WHEN
+    NEW.IsDefault != 0
+BEGIN
+    UPDATE
+        Securities
+    SET
+        IsDefault = 0
+    WHERE
+        Symbol    != NEW.Symbol  AND
+        AssetID   == NEW.AssetID AND
+        IsDefault != 0;
+END;
+
 
 CREATE TABLE UserSalts
 (
@@ -77,6 +161,19 @@ CREATE TABLE AssetAffinities
 
     CONSTRAINT RowUniqueness PRIMARY KEY (User, AssetID, TaxGroupID)
 ) WITHOUT ROWID;
+
+CREATE VIEW DefaultSecurities
+AS
+SELECT
+    Assets.Abbreviation AS "Asset",
+    Securities.Symbol   AS "Symbol"
+FROM
+    Securities
+INNER JOIN
+    Assets ON Securities.AssetID == Assets.ID
+WHERE
+    Securities.IsDefault != 0
+;
 
 CREATE VIEW AssetGroupsMap
 AS
@@ -173,19 +270,19 @@ INSERT INTO Securities (Symbol, AssetID) VALUES ("VB",  2);
 INSERT INTO Securities (Symbol, AssetID) VALUES ("IXUS",  3);
 INSERT INTO Securities (Symbol, AssetID) VALUES ("FZILX", 3);
 
-INSERT INTO Securities (Symbol, AssetID) VALUES ("AGG",   4);
 INSERT INTO Securities (Symbol, AssetID) VALUES ("FXNAX", 4);
+INSERT INTO Securities (Symbol, AssetID) VALUES ("AGG",   4);
 INSERT INTO Securities (Symbol, AssetID) VALUES ("TFII",  4);
 
-INSERT INTO Securities (Symbol, AssetID) VALUES ("IAGG",  5);
 INSERT INTO Securities (Symbol, AssetID) VALUES ("FBIIX", 5);
+INSERT INTO Securities (Symbol, AssetID) VALUES ("IAGG",  5);
 
 INSERT INTO Securities (Symbol, AssetID) VALUES ("ILTB", 6);
 INSERT INTO Securities (Symbol, AssetID) VALUES ("BLV",  6);
 
+INSERT INTO Securities (Symbol, AssetID) VALUES ("FZFXX", 7);
 INSERT INTO Securities (Symbol, AssetID) VALUES ("CORE",  7);
 INSERT INTO Securities (Symbol, AssetID) VALUES ("FDLXX", 7);
-INSERT INTO Securities (Symbol, AssetID) VALUES ("FZFXX", 7);
 INSERT INTO Securities (Symbol, AssetID) VALUES ("FDRXX", 7);
 
 -- Taxable

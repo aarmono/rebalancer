@@ -26,6 +26,7 @@ AssetTaxGroup = namedtuple('AssetTaxGroup', 'asset tax_group')
 Security = namedtuple('Security', 'symbol asset asset_group')
 AccountInfo = namedtuple('AccountInfo', 'description tax_status')
 IDEntry = namedtuple('IDEntry', 'name id')
+DefaultSecurity = namedtuple('DefaultSecurity', 'asset symbol')
 
 AssetAffinity = namedtuple('AssetAffinity', 'asset tax_group priority')
 
@@ -109,6 +110,10 @@ class Database:
     def get_asset_groups(self):
         cmd = "SELECT Name, ID from AssetGroups"
         return self.__return_iter(IDEntry._make, cmd)
+
+    def get_default_securities(self):
+        cmd = "SELECT Asset, Symbol FROM DefaultSecurities"
+        return self.__return_iter(DefaultSecurity._make, cmd)
 
     def get_tax_groups(self):
         cmd = "SELECT Name, ID FROM TaxGroups"

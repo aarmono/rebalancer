@@ -24,12 +24,18 @@ def get_account_info(database, user_token, account, account_name):
     return database.get_account_info(user_token, account_hash, account_name)
 
 class Session:
-    def __init__(self, user_token, db, filename = None, taxable_credit = None, tax_deferred_credit = None):
+    def __init__(self,
+                 user_token,
+                 db,
+                 filename = None,
+                 taxable_credit = None,
+                 tax_deferred_credit = None,
+                 quote_key = None):
         self.__user_token = user_token
         self.__account_info = {}
 
         self.__account_entries = None if filename is None else parse_file(filename)
-        self.__securities_db = SecurityDatabase(self.__account_entries, db)
+        self.__securities_db = SecurityDatabase(self.__account_entries, db, quote_key)
         self.__account_target = AccountTarget(user_token, self.__securities_db, db)
         self.__rebalancer = Rebalancer(self.__securities_db, self.__account_target)
 

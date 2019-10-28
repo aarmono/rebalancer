@@ -1,10 +1,29 @@
 from collections import namedtuple, defaultdict
+from decimal import Decimal
 
-from .utils import to_enum_name, is_mutual_fund
+from .utils import to_enum_name, is_mutual_fund, round_cents
 from .db import Database
 
+def get_current_price_from_web(symbol, service_key):
+    import urllib.request
+    import urllib.parse
+    import json
+
+    parms = {
+        'function' : 'GLOBAL_QUOTE',
+        'symbol'   : symbol,
+        'apikey'   : service_key
+    }
+    data = urllib.parse.urlencode(parms)
+    url = "https://www.alphavantage.co/query?%s" % data
+    with urllib.request.urlopen(url) as f:
+        j = json.loads(f.read().decode('ascii'))
+        return round_cents(Decimal(j['Global Quote']['05. price']))
+
 class SecurityDatabase:
-    def __init__(self, account_entries = None, database = None):
+    def __init__(self, account_entries = None, database = None, quote_key = None):
+        self.__quote_key = quote_key
+
         if account_entries is not None:
             self.__current_prices = dict([(entry.symbol, entry.share_price) for entry in account_entries])
 
@@ -32,6 +51,12 @@ class SecurityDatabase:
         self.__current_prices[symbol] = value
 
     def get_current_price(self, symbol):
+        if self.get_asset_class(symbol) == self.Assets.CASH:
+            return Decimal(1.0)
+        elif self.__quote_key is not None and symbol not in self.__current_prices:
+            current_price = get_current_price_from_web(symbol, self.__quote_key)
+            self.__current_prices[symbol] = current_price
+
         return self.__current_prices[symbol]
 
     def supports_fractional_shares(self, symbol):
@@ -39,14 +64,13 @@ class SecurityDatabase:
                self.get_asset_group(symbol) == self.AssetGroups.CASH
 
     def get_reference_security(self, asset):
-        for symbol in self.__asset_securities[asset]:
-            if is_mutual_fund(symbol) == False and symbol in self.__current_prices:
-                return symbol
+        return self.__default_securities[asset]
 
     def __init_from_db(self, db):
         self.__create_securities(db)
         self.__create_assets(db)
         self.__create_asset_groups(db)
+        self.__create_default_securities(db)
 
     def __create_securities(self, database):
         asset_classes = {}
@@ -63,6 +87,9 @@ class SecurityDatabase:
         self.__asset_classes = asset_classes
         self.__security_asset_groups = security_asset_groups
         self.__asset_securities = asset_securities
+
+    def __create_default_securities(self, database):
+        self.__default_securities = dict(database.get_default_securities())
 
     def __create_assets(self, database):
         assets = {}

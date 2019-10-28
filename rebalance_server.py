@@ -7,6 +7,8 @@ import argparse
 from bottle import template, route, run, request
 from rebalancer import RebalanceMode, Database, AssetAffinity, Session, hash_user_token, hash_user_token_with_salt
 
+QUOTE_KEY = None
+
 @route('/')
 def index():
     return template('templates/index.tmpl')
@@ -49,7 +51,8 @@ def result():
                           database,
                           upload.file,
                           taxable_credit,
-                          tax_deferred_credit)
+                          tax_deferred_credit,
+                          QUOTE_KEY)
 
         return template('templates/result.tmpl',
                         user_token = token,
@@ -198,8 +201,14 @@ def main():
                         help='bind to specified port')
     parser.add_argument('--debug', dest='debug', action='store_true',
                         help='Enable debug mode in HTTP server')
+    parser.add_argument('--quote-key', dest='quote_key', type=str, default=None,
+                        help='Alphavantage API key for real-time quote data')
 
     args = parser.parse_args()
+
+    global QUOTE_KEY
+    QUOTE_KEY = args.quote_key
+
     run(host=args.host, port=args.port, debug=args.debug)
 
 if __name__ == "__main__":
