@@ -38,6 +38,29 @@ CREATE TABLE Securities
     FOREIGN KEY("AssetID") REFERENCES Assets("ID") ON DELETE CASCADE
 ) WITHOUT ROWID;
 
+CREATE TRIGGER MadeDefaultOnDeleteIfNotExists
+AFTER
+    DELETE
+ON
+    Securities
+FOR EACH ROW WHEN
+    OLD.IsDefault == 1
+BEGIN
+    UPDATE
+        Securities
+    SET
+        IsDefault = 1
+    WHERE
+        AssetID == OLD.AssetID AND
+        NOT EXISTS (SELECT
+                        Symbol
+                    FROM
+                        Securities
+                    WHERE
+                        AssetID == OLD.AssetID AND
+                        IsDefault == 1);
+END;
+
 CREATE TRIGGER MadeDefaultOnInsertIfNotExists
 AFTER
     INSERT

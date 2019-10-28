@@ -12,20 +12,22 @@ table, th, td {
 <body>
 
 <%
-securities = {}
+securities_dict = {}
 assets = {}
 asset_groups = set()
 
 for security in database.get_securities():
-    securities[security.symbol] = security.asset
+    securities_dict[security.symbol] = security.asset
     assets[security.asset] = security.asset_group
     asset_groups.add(security.asset_group)
 end
 
+default_securities = dict(database.get_default_securities())
+
 assets.update(database.get_assets())
 asset_groups.update(map(lambda x: x[0], database.get_asset_groups()))
 
-securities = sorted(securities.items(), key=lambda x: x[1])
+securities = sorted(securities_dict.items(), key=lambda x: x[1])
 assets = sorted(assets.items(), key=lambda x: x[1])
 asset_groups = sorted(asset_groups)
 %>
@@ -58,6 +60,9 @@ asset_groups = sorted(asset_groups)
       <option value="{{asset}}">{{asset}}</option>
       %end
     </select>
+
+    <label for "symbol/default">Make Default: </label>
+    <input type = "checkbox" name = "symbol/default" value = "true" />
   </p>
   <input type="submit" value="Update Symbols" />
 </form>
@@ -69,13 +74,25 @@ asset_groups = sorted(asset_groups)
     <tr>
       <th>Delete</th>
       <th>Asset</th>
+      <th>Default Security</th>
       <th>Asset Group</th>
     </tr>
 
     % for (asset, asset_group) in assets:
+    % default_security = default_securities.get(asset)
     <tr>
       <td><input type = "checkbox" name = "asset/delete" value = "{{asset}}" /></td>
       <td>{{asset}}</td>
+      <td>
+        <select name="asset/default">
+          % for (security, _) in securities:
+          % if securities_dict[security] == asset:
+          % is_default = security == default_security
+          <option value="{{security}}" {{!'selected="selected"' if is_default else ''}}>{{security}}</option>
+          %end
+          %end
+        </select>
+      </td>
       <td>{{asset_group}}</td>
     </tr>
     %end

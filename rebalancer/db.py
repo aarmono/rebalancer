@@ -115,6 +115,10 @@ class Database:
         cmd = "SELECT Asset, Symbol FROM DefaultSecurities"
         return self.__return_iter(DefaultSecurity._make, cmd)
 
+    def set_default_security(self, symbol):
+        cmd = "UPDATE Securities SET IsDefault = 1 WHERE Symbol == ?"
+        self.__return_one(str, cmd, symbol)
+
     def get_tax_groups(self):
         cmd = "SELECT Name, ID FROM TaxGroups"
         return self.__return_iter(IDEntry._make, cmd)
@@ -199,9 +203,9 @@ class Database:
                               affinity.asset,
                               affinity.priority)
 
-    def add_symbol(self, symbol, asset):
-        cmd = "INSERT INTO Securities (Symbol, AssetID) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?))"
-        self.__return_one(str, cmd, symbol, asset)
+    def add_symbol(self, symbol, asset, is_default = False):
+        cmd = "INSERT INTO Securities (Symbol, AssetID, IsDefault) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?)"
+        self.__return_one(str, cmd, symbol, asset, is_default)
 
     def delete_symbol(self, symbol):
         cmd = "DELETE FROM Securities WHERE Symbol == ?"

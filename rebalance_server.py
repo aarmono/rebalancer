@@ -162,9 +162,10 @@ def security_configure_update():
         if "symbol/symbol" in request.forms:
             symbol = request.forms.get("symbol/symbol")
             asset = request.forms.get("symbol/asset_class")
+            default = request.forms.get("symbol/default", "false") == "true"
 
             if symbol is not None and len(symbol) > 0:
-                database.add_symbol(symbol, asset)
+                database.add_symbol(symbol, asset, default)
 
             for symbol in request.forms.getall('symbol/delete'):
                 database.delete_symbol(symbol)
@@ -178,6 +179,9 @@ def security_configure_update():
 
             for asset in request.forms.getall('asset/delete'):
                 database.delete_asset(asset)
+
+            for symbol in request.forms.getall('asset/default'):
+                database.set_default_security(symbol)
 
         elif "asset_group/asset_group" in request.forms:
             asset_group = request.forms.get("asset_group/asset_group")
