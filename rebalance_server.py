@@ -22,6 +22,10 @@ def rebalance():
     token              = request.forms.get('user_token')
     upload             = request.files.get('upload')
     rebalance_mode_str = request.forms.get('rebalance_mode')
+
+    if upload is None:
+        return "Must provide a portfolio csv file"
+
     name, ext = os.path.splitext(upload.filename)
     if ext not in ('.csv'):
         return 'File extension not allowed.'
@@ -75,6 +79,9 @@ def rebalance():
 def configure_show():
     user_token = request.forms.get('user_token')
     upload     = request.files.get('upload')
+
+    if upload is None:
+        return "Must provide a portfolio csv file"
 
     name, ext = os.path.splitext(upload.filename)
     if ext not in ('.csv'):
