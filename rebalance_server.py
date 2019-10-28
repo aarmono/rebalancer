@@ -17,8 +17,8 @@ def index():
 def get_token():
     return os.urandom(16).hex()
 
-@route('/result', method='POST')
-def result():
+@route('/rebalance', method='POST')
+def rebalance():
     token              = request.forms.get('user_token')
     upload             = request.files.get('upload')
     rebalance_mode_str = request.forms.get('rebalance_mode')
