@@ -21,7 +21,7 @@ def parse_file(file):
 
 def parse_file_object(file):
     AccountEntry = namedtuple('AccountEntry',
-                              'account_name symbol share_price current_value is_sweep description')
+                              'account_name symbol share_price current_value is_sweep description shares')
     ret = []
     r = DictReader(file)
     for row in r:
@@ -32,6 +32,7 @@ def parse_file_object(file):
             sweep = is_sweep(symbol)
             symbol = symbol.replace('*', '')
 
+            shares = Decimal(row["Quantity"])
             cost_per_share = Decimal(1.0) if sweep else parse_dollar_column(row["Last Price"])
             current_value = None
             current_value = parse_dollar_column(row["Current Value"])
@@ -41,7 +42,8 @@ def parse_file_object(file):
                                  cost_per_share,
                                  current_value,
                                  sweep,
-                                 description)
+                                 description,
+                                 shares)
 
             ret.append(entry)
 
