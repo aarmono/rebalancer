@@ -25,6 +25,12 @@ num_assets = len(assets)
 
     <h2>{{tax_status}}</h2>
 
+    <table>
+        <tr>
+            <th>Asset</th>
+            <th>Priority</th>
+            <th>Available for Sale?</th>
+        </tr>
         <%
         affinities = account_target.get_tax_group_asset_affinity(tax_status)
         affinity_map = {}
@@ -42,15 +48,19 @@ num_assets = len(assets)
             values = [(i, i) for i in range(1, num_assets + 1)]
             values.append(("DISABLE", "Disable"))
         %>
-            <p>
-                <label for="affinity/{{tax_status}}|{{asset}}">{{asset}} Priority: </label>
+        <tr>
+            <td>{{asset}}</td>
+            <td>
                 <select name="affinity/{{tax_status}}|{{asset}}">
                 % for (value, text) in values:
                     <option value="{{value}}" {{!'selected="selected"' if value == cur_value else ''}}>{{text}}</option>
                 %end
                 </select>
-            </p>
+            </td>
+            <td><input type = "checkbox" name = "saleability/{{tax_status}}|{{asset}}" value = "true" /></td>
+        </tr>
 
         % end
+    </table>
 
     % end
