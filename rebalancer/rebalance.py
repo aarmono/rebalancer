@@ -37,7 +37,6 @@ class Rebalancer:
         current_asset_values = portfolio.assets_by_tax_status()
         tax_status_amounts = dict([(x, y.current_value()) for (x, y) in current_asset_values.items()])
 
-        accumulated_asset_values = defaultdict(Decimal)
         targets = defaultdict(partial(defaultdict, Decimal))
         for tax_status in seed_tax_groups:
             account_group = current_asset_values[tax_status]
@@ -47,8 +46,6 @@ class Rebalancer:
                 group = self.__security_db.get_asset_group_for_asset(asset)
                 target_value = Decimal(0.0) if asset == CASH else value
                 targets[tax_status][asset] = target_value
-
-                accumulated_asset_values[asset] += target_value
 
                 tax_status_amounts[tax_status] -= target_value
                 target_asset_group_values[group] = max(Decimal(0.0),
@@ -83,8 +80,6 @@ class Rebalancer:
                                        target_asset_values[asset],
                                        target_asset_group_values[group])
 
-                    accumulated_asset_values[asset] += alloc_amount
-
                     targets[tax_status][asset] += alloc_amount
 
                     tax_status_amounts[tax_status] -= alloc_amount
@@ -110,15 +105,16 @@ class Rebalancer:
 
                 # Add to each asset with affinity with normalized target percentage
                 for asset in assets:
+                    target_percentage = target_asset_percentages[asset]
                     normalized_percentage = target_asset_percentages[asset] / sum_percentage
 
-                    to_add = min(tax_status_amount,
+                    to_add = min(tax_status_amounts[tax_status],
                                  tax_status_amount * normalized_percentage)
 
                     targets[tax_status][asset] += to_add
 
-                    tax_status_amount -= to_add
-                    if tax_status_amount <= Decimal(0.0):
+                    tax_status_amounts[tax_status] -= to_add
+                    if tax_status_amounts[tax_status] <= Decimal(0.0):
                         break
 
         return targets
