@@ -5,7 +5,7 @@ from collections import defaultdict
 import argparse
 
 from bottle import template, route, run, request
-from rebalancer import RebalanceMode, Database, AssetAffinity, Session, hash_user_token, hash_user_token_with_salt
+from rebalancer import RebalanceMode, Database, AssetAffinity, Session,
 
 QUOTE_KEY = None
 
@@ -50,11 +50,10 @@ def rebalance():
     elif rebalance_mode_str == "NO_SELL":
         rebalance_mode = RebalanceMode.NO_SELL
 
-    hashed_token_system_salt = hash_user_token(token)
     with Database() as database:
-        salt = database.get_user_salt(user_hash = hashed_token_system_salt)
+        salt = database.get_user_salt(token)
         if salt is None:
-            database.add_user(user_hash = hashed_token_system_salt)
+            database.add_user(token)
             database.commit()
 
             session = Session(token, database, upload.file)
@@ -87,12 +86,10 @@ def configure_show():
     if ext not in ('.csv'):
         return 'File extension not allowed.'
 
-    hashed_token_system_salt = hash_user_token(user_token)
-
     with Database() as database:
-        salt = database.get_user_salt(user_hash = hashed_token_system_salt)
+        salt = database.get_user_salt(user_token)
         if salt is None:
-            database.add_user(user_hash = hashed_token_system_salt)
+            database.add_user(user_token)
             database.commit()
 
         session = Session(user_token, database, upload.file)
@@ -113,9 +110,6 @@ def configure_update():
     saleable_assets = set()
 
     with Database() as database:
-        salt = database.get_user_salt(user_token = user_token)
-        hashed_token_user_salt = hash_user_token_with_salt(user_token, salt = salt)
-
         asset_ids = dict(database.get_asset_abbreviations())
 
         for (key, value) in request.forms.items():
@@ -159,7 +153,7 @@ def configure_update():
                                      description,
                                      tax_group)
 
-        database.set_asset_targets(hashed_token_user_salt,
+        database.set_asset_targets(user_token,
                                    asset_deci_perentages.items())
 
         database.commit()

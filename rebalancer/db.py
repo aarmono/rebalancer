@@ -56,6 +56,8 @@ class Database:
 
         self.__hashed_tokens_system = {}
         self.__hashed_tokens_user = {}
+        self.__account_hashes = {}
+        self.__account_keys = {}
 
     def __enter__(self):
         return self
@@ -74,14 +76,51 @@ class Database:
 
         return None if row is None else result_type(row)
 
+    def __get_user_hash_system_salt(self, user_token):
+        if user_token not in self.__hashed_tokens_system:
+            hashed_token = hash_user_token(user_token)
+            self.__hashed_tokens_system[user_token] = hashed_token
+
+        return self.__hashed_tokens_system[user_token]
+
+    def __get_user_hash_user_salt(self, user_token):
+        if user_token not in self.__hashed_tokens_user:
+            salt = self.get_user_salt(user_token)
+            salted_token = hash_user_token_with_salt(user_token, salt)
+            self.__hashed_tokens_user[user_token] = salted_token
+
+        return self.__hashed_tokens_user[user_token]
+
+    def __get_account_hash(self, user_token, account):
+        key = (user_token, account)
+        if key not in self.__account_hashes:
+            salt = self.get_user_salt(user_token)
+            acount_hash = hash_account_name(user_token, account, salt)
+
+            self.__account_hashes[key] = account_hash
+
+        return self.__account_hashes[key]
+
+    def __get_account_key(self, user_token, account):
+        key = (user_token, account)
+        if key not in self.__account_keys:
+            salt = self.get_user_salt(user_token)
+            description_key = get_description_key(user_token, account, salt)
+
+            self.__account_keys[key] = description_key
+
+        return self.__account_keys[key]
+
     def get_db_version(self):
         return self.__return_one(lambda x: x[0], "PRAGMA user_version")
 
-    def get_asset_targets(self, user_hash):
+    def get_asset_targets(self, user_token):
+        user_hash = self.__get_user_hash_user_salt(user_token)
         cmd = "SELECT Asset, TargetDeciPercent FROM AssetTargetsMap WHERE User == ?"
         return self.__return_iter(AssetTarget._make, cmd, user_hash)
 
-    def set_asset_targets(self, user_hash, asset_targets):
+    def set_asset_targets(self, user_token, asset_targets):
+        user_hash = self.__get_user_hash_user_salt(user_token)
         self.__return_one(''.join,
                           "DELETE FROM Targets WHERE User == ?",
                           user_hash)
@@ -90,11 +129,13 @@ class Database:
             cmd = "INSERT INTO Targets (User, AssetID, TargetDeciPercent) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?)"
             self.__return_one(str, cmd, user_hash, asset, target_deci_percent)
 
-    def get_asset_tax_affinity(self, user_hash):
+    def get_asset_tax_affinity(self, user_token):
+        user_hash = self.__get_user_hash_user_salt(user_token)
         cmd = "SELECT Asset, TaxGroup FROM AssetAffinitiesMap WHERE User == ? ORDER BY Asset, Priority"
         return self.__return_iter(AssetTaxGroup._make, cmd, user_hash)
 
-    def get_tax_group_asset_affinity(self, user_hash):
+    def get_tax_group_asset_affinity(self, user_token):
+        user_hash = self.__get_user_hash_user_salt(user_token)
         cmd = "SELECT Asset, TaxGroup FROM AssetAffinitiesMap WHERE User == ? ORDER BY TaxGroup, Priority"
         return self.__return_iter(AssetTaxGroup._make, cmd, user_hash)
 
@@ -126,30 +167,26 @@ class Database:
         cmd = "SELECT Name, ID FROM TaxGroups"
         return self.__return_iter(IDEntry._make, cmd)
 
-    def get_user_salt(self, **kwargs):
-        user_hash = get_user_hash_from_kwargs(kwargs)
+    def get_user_salt(self, user_token):
+        user_hash = self.__get_user_hash_system_salt(user_token)
 
         cmd = "SELECT Salt FROM UserSalts WHERE User = ?"
         return self.__return_one(''.join, cmd, user_hash)
 
-    def add_user(self, **kwargs):
-        user_hash = get_user_hash_from_kwargs(kwargs)
+    def add_user(self, user_token):
+        user_hash = self.__get_user_hash_system_salt(user_token)
 
         cmd = "INSERT INTO UserSalts (User) VALUES (?)"
         self.__return_one(str, cmd, user_hash)
 
-    def add_account(self, user_token, account, description, tax_group, salt = None):
-        if salt is None:
-            salt = self.get_user_salt(user_token = user_token)
-
-        hashed_account = hash_account_name(user_token, account, salt = salt)
+    def add_account(self, user_token, account, description, tax_group):
+        hashed_account = self.__get_account_hash(user_token, account)
 
         encrypted_description = None
         if len(description) > 0:
-            encrypted_description = encrypt_account_description(user_token,
-                                                                account,
-                                                                description,
-                                                                salt = salt)
+            description_key = self.__get_account_key(user_token, account)
+            encrypted_description = encrypt_account_description(description_key,
+                                                                description)
 
         cmd = "REPLACE INTO Accounts (ID, Description, TaxGroupID) VALUES (?, ?, (SELECT ID From TaxGroups WHERE Name == ?))"
         self.__return_one(str,
@@ -158,21 +195,17 @@ class Database:
                           encrypted_description,
                           tax_group)
 
-    def delete_account(self, user_token, account, salt = None):
-        if salt is None:
-            salt = self.get_user_salt(user_token = user_token)
+    def delete_account(self, user_token, account):
+        hashed_account = self.__get_account_hash(user_token, account)
 
-        hashed_account = hash_account_name(user_token, account, salt = salt)
+        del self.__account_hashes[(user_token, account)]
 
         cmd = "DELETE FROM Accounts WHERE ID == ?"
         self.__return_one(str, cmd, hashed_account)
 
 
-    def get_account_info(self, user_token, account, salt = None):
-        if salt is None:
-            salt = self.get_user_salt(user_token = user_token)
-
-        hashed_account = hash_account_name(user_token, account, salt = salt)
+    def get_account_info(self, user_token, account):
+        hashed_account = self.__get_account_hash(user_token, account)
 
         cmd = "SELECT Description, TaxGroup FROM AccountInfoMap WHERE AccountID = ?"
         result = self.__return_one(tuple, cmd, hashed_account)
@@ -180,18 +213,16 @@ class Database:
             (description, tax_group) = result
 
             if description is not None:
-                description = decrypt_account_description(user_token,
-                                                          account,
-                                                          description,
-                                                          salt = salt)
+                description_key = self.__get_account_key(user_token, account)
+                description = decrypt_account_description(description_key
+                                                          description)
 
             return AccountInfo(description, tax_group)
         else:
             return None
 
     def set_asset_affinities(self, user_token, asset_affinities, saleable_assets):
-        salt = self.get_user_salt(user_token = user_token)
-        salted_token = hash_user_token_with_salt(user_token, salt = salt)
+        salted_token = self.__get_user_hash_user_salt(user_token)
 
         self.__return_one(''.join,
                           "DELETE FROM AssetAffinities WHERE User == ?",
@@ -210,8 +241,7 @@ class Database:
                               can_sell)
 
     def get_saleable_assets(self, user_token):
-        salt = self.get_user_salt(user_token = user_token)
-        salted_token = hash_user_token_with_salt(user_token, salt = salt)
+        salted_token = self.__get_user_hash_user_salt(user_token)
 
         cmd = "SELECT Asset, TaxGroup FROM SaleableAssetsMap WHERE User == ?"
 

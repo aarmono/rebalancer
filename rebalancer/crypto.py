@@ -8,26 +8,13 @@ def hash_user_token(user_token):
     salt = get_salt_from_file()
     return hash_user_token_with_salt(user_token, salt = salt)
 
-def get_salt_from_kwargs(user_token, kwargs):
-    salt = None
-    if "salt" not in kwargs or kwargs["salt"] is None:
-        salt = kwargs["db"].get_user_salt(user_token)
-    else:
-        salt = kwargs["salt"]
-
-    return salt
-
-def hash_user_token_with_salt(user_token, **kwargs):
-    salt = get_salt_from_kwargs(user_token, kwargs)
-
+def hash_user_token_with_salt(user_token, salt):
     return b64encode(pbkdf2_hmac('sha256',
                                  user_token.encode('utf-8'),
                                  salt.encode('utf-8'),
                                  100000)).decode('utf-8')
 
-def hash_account_name(user_token, account_name, **kwargs):
-    salt = get_salt_from_kwargs(user_token, kwargs).encode('utf-8')
-
+def hash_account_name(user_token, account_name, salt):
     m = sha512()
     m.update(user_token.encode('utf-8'))
     m.update(account_name.encode('utf-8'))
@@ -38,9 +25,7 @@ def hash_account_name(user_token, account_name, **kwargs):
                                  salt,
                                  100000)).decode('utf-8')
 
-def get_description_key(user_token, account_name, **kwargs):
-    salt = get_salt_from_kwargs(user_token, kwargs).encode('utf-8')
-
+def get_description_key(user_token, account_name, salt):
     m = sha512()
     m.update(account_name.encode('utf-8'))
     m.update(user_token.encode('utf-8'))
@@ -53,22 +38,12 @@ def get_description_key(user_token, account_name, **kwargs):
 
     return key
 
-def encrypt_account_description(user_token,
-                                account_name,
-                                account_description,
-                                **kwargs):
-    key = get_description_key(user_token, account_name, **kwargs)
-
+def encrypt_account_description(key, account_description):
     aes = AESModeOfOperationCTR(key)
 
     return b64encode(aes.encrypt(account_description.encode('utf-8'))).decode('utf-8')
 
-def decrypt_account_description(user_token,
-                                account_name,
-                                encrypted_description,
-                                **kwargs):
-    key = get_description_key(user_token, account_name, **kwargs)
-
+def decrypt_account_description(key, encrypted_description):
     aes = AESModeOfOperationCTR(key)
 
     return aes.decrypt(b64decode(encrypted_description.encode('utf-8'))).decode('utf-8')
