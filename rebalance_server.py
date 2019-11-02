@@ -110,6 +110,7 @@ def configure_update():
     account_info = defaultdict(dict)
     asset_set = set()
     asset_deci_perentages = {}
+    saleable_assets = set()
 
     with Database() as database:
         salt = database.get_user_salt(user_token = user_token)
@@ -130,6 +131,9 @@ def configure_update():
                                             tax_group,
                                             int(value))
                         affinities.append(val)
+                elif section == "saleability":
+                    (tax_group, asset) = subelement.split('|')
+                    saleable_assets.add(AssetTaxGroup(asset, tax_group))
                 elif section == "allocation":
                     asset_set.add(subelement)
 
@@ -139,7 +143,7 @@ def configure_update():
                 print(ex)
                 pass
 
-        database.set_asset_affinities(user_token, affinities)
+        database.set_asset_affinities(user_token, affinities, saleable_assets)
 
         for account in account_info.keys():
             account_map = account_info[account]
@@ -168,6 +172,7 @@ def configure_update():
                         accounts = list(account_info.keys()),
                         account_target = session.get_account_target(),
                         assets = assets,
+                        saleable_assets = saleable_assets,
                         database = database)
 
 @route('/security_configure')

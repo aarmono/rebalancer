@@ -54,6 +54,9 @@ class Database:
 
             db_version = self.get_db_version()
 
+        self.__hashed_tokens_system = {}
+        self.__hashed_tokens_user = {}
+
     def __enter__(self):
         return self
 
@@ -186,7 +189,7 @@ class Database:
         else:
             return None
 
-    def set_asset_affinities(self, user_token, asset_affinities):
+    def set_asset_affinities(self, user_token, asset_affinities, saleable_assets):
         salt = self.get_user_salt(user_token = user_token)
         salted_token = hash_user_token_with_salt(user_token, salt = salt)
 
@@ -195,13 +198,24 @@ class Database:
                           salted_token)
 
         for affinity in asset_affinities:
-            cmd = "INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority) VALUES (?, (SELECT ID FROM TaxGroups WHERE Name == ?), (SELECT ID FROM Assets WHERE Abbreviation == ?), ?)"
+            asset_tax_group = AssetTaxGroup(affinity.asset, affinity.tax_group)
+            can_sell = 1 if asset_tax_group in saleable_assets else 0
+            cmd = "INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority, CanSell) VALUES (?, (SELECT ID FROM TaxGroups WHERE Name == ?), (SELECT ID FROM Assets WHERE Abbreviation == ?), ?, ?)"
             self.__return_one(''.join,
                               cmd,
                               salted_token,
                               affinity.tax_group,
                               affinity.asset,
-                              affinity.priority)
+                              affinity.priority,
+                              can_sell)
+
+    def get_saleable_assets(self, user_token):
+        salt = self.get_user_salt(user_token = user_token)
+        salted_token = hash_user_token_with_salt(user_token, salt = salt)
+
+        cmd = "SELECT Asset, TaxGroup FROM SaleableAssetsMap WHERE User == ?"
+
+        return set(self.__return_iter(AssetTaxGroup._make, salted_token))
 
     def add_symbol(self, symbol, asset, is_default = False):
         cmd = "INSERT INTO Securities (Symbol, AssetID, IsDefault) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?)"

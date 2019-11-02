@@ -208,6 +208,7 @@ CREATE TABLE AssetAffinities
     AssetID    INTEGER NOT NULL,
     TaxGroupID INTEGER NOT NULL,
     Priority   INTEGER NOT NULL,
+    CanSell    INTEGER NOT NULL DEFAULT 1,
 
     FOREIGN KEY("AssetID")    REFERENCES Assets("ID") ON DELETE CASCADE,
     FOREIGN KEY("TaxGroupID") REFERENCES TaxGroups("ID") ON DELETE CASCADE,
@@ -278,6 +279,22 @@ INNER JOIN
     Assets ON AssetAffinities.AssetID == Assets.ID
 INNER JOIN
     TaxGroups ON AssetAffinities.TaxGroupID == TaxGroups.ID
+;
+
+CREATE VIEW SaleableAssetsMap
+AS
+SELECT
+    AssetAffinities.User     AS "User",
+    Assets.Abbreviation      AS "Asset",
+    TaxGroups.Name           AS "TaxGroup"
+FROM
+    AssetAffinities
+INNER JOIN
+    Assets ON AssetAffinities.AssetID == Assets.ID
+INNER JOIN
+    TaxGroups ON AssetAffinities.TaxGroupID == TaxGroups.ID
+WHERE
+    AssetAffinities.CanSell != 0
 ;
 
 CREATE VIEW AssetTargetsMap

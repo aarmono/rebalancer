@@ -15,7 +15,7 @@ from .crypto import decrypt_account_description
 
 from .parser import parse_file
 
-from .db import Database, AssetAffinity
+from .db import Database, AssetAffinity, AssetTaxGroup
 
 from .session import Session
 
