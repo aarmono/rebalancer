@@ -12,15 +12,6 @@ def create_db_conn(database_path):
 
     return conn
 
-def get_user_hash_from_kwargs(kwargs):
-    user_hash = None
-    if 'user_hash' in kwargs:
-        user_hash = kwargs['user_hash']
-    else:
-        user_hash = hash_user_token(kwargs['user_token'])
-
-    return user_hash
-
 AssetTarget = namedtuple('AssetTarget', 'asset target_deci_percent')
 AssetTaxGroup = namedtuple('AssetTaxGroup', 'asset tax_group')
 Security = namedtuple('Security', 'symbol asset asset_group')
