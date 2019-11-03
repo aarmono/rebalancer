@@ -1,5 +1,10 @@
-from hashlib import sha256, sha512, pbkdf2_hmac
+from hashlib import sha256, sha512
 from base64 import b64encode, b64decode
+
+try:
+    from fastpbkdf2 import pbkdf2_hmac
+except ImportError:
+    from hashlib import pbkdf2_hmac
 
 from .pyaes import AESModeOfOperationCTR
 from .utils import get_salt_from_file
