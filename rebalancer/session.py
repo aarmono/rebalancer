@@ -39,9 +39,6 @@ class Session:
         self.__account_target = AccountTarget(user_token, self.__securities_db, db)
         self.__rebalancer = Rebalancer(self.__securities_db, self.__account_target)
 
-        from multiprocessing import Pool
-        p = Pool()
-
         self.__portfolio = None
         if self.__account_entries is not None:
             TaxStatus = create_tax_status(db)
