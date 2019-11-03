@@ -41,39 +41,30 @@ table, th, td {
 %                                            portfolio_transactions.values()))))
 
 % if len(transactions_list) > 0:
-<h1>Transactions</h1>
+    <h1>Transactions</h1>
 
-%include('templates/transactions.tmpl', transaction_groups=portfolio_transactions)
+    <%
+    include('templates/transactions.tmpl', transaction_groups=portfolio_transactions)
 
-<h1>New Portfolio Composition</h1>
+    include('templates/portfolio.tmpl', portfolio=new_portfolio, title="New Portfolio Composition", n=1)
 
-%include('templates/portfolio.tmpl', portfolio=new_portfolio)
+    for (tax_status, assets) in new_portfolio.assets_by_tax_status().items():
+        tax_group_targets = targets_by_tax_group[tax_status]
+        include('templates/portfolio.tmpl', portfolio=assets, target_values=None, target_percentages=None, title=tax_status, n=2)
+    end
+end
 
-% for (tax_status, assets) in new_portfolio.assets_by_tax_status().items():
-%     tax_group_targets = targets_by_tax_group[tax_status]
+include('templates/portfolio.tmpl', portfolio=portfolio, title="Current Portfolio Composition", n=1)
 
-<h2>{{tax_status}}</h2>
+if len(transactions_list) == 0:
 
-%     include('templates/portfolio.tmpl', portfolio=assets, target_values=None, target_percentages=None)
-% end
+    for (tax_status, assets) in portfolio.assets_by_tax_status().items():
+        tax_group_targets = targets_by_tax_group[tax_status]
+        include('templates/portfolio.tmpl', portfolio=assets, target_values=None, target_percentages=None, title=tax_status, n=2)
+    end
 
-% end
-
-<h1>Current Portfolio Composition</h1>
-
-% include('templates/portfolio.tmpl', portfolio=portfolio)
-
-% if len(transactions_list) == 0:
-
-% for (tax_status, assets) in portfolio.assets_by_tax_status().items():
-%     tax_group_targets = targets_by_tax_group[tax_status]
-
-<h2>{{tax_status}}</h2>
-
-%     include('templates/portfolio.tmpl', portfolio=assets, target_values=None, target_percentages=None)
-% end
-
-% end
+end
+%>
 
 </body>
 </html>
