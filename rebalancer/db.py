@@ -1,4 +1,4 @@
-from os import path
+from os import path, urandom
 from sqlite3 import connect
 from decimal import Decimal
 from collections import namedtuple
@@ -169,8 +169,8 @@ class Database:
     def add_user(self, user_token):
         user_hash = self.__get_user_hash_system_salt(user_token)
 
-        cmd = "INSERT INTO UserSalts (User) VALUES (?)"
-        self.__return_one(str, cmd, user_hash)
+        cmd = "INSERT INTO UserSalts (User, Salt) VALUES (?, ?)"
+        self.__return_one(str, cmd, user_hash, urandom(16).hex())
 
     def add_account(self, user_token, account, description, tax_group):
         hashed_account = self.__get_account_hash(user_token, account)
