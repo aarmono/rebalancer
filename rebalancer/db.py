@@ -50,6 +50,8 @@ class Database:
         self.__account_hashes = {}
         self.__account_keys = {}
 
+        self.__hashed_tokens_user["DEFAULT"] = "DEFAULT"
+
     def __enter__(self):
         return self
 
