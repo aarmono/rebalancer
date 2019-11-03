@@ -4,7 +4,7 @@ from decimal import Decimal
 from collections import namedtuple
 
 from .crypto import hash_user_token, hash_account_name, hash_user_token_with_salt
-from .crypto import encrypt_account_description, decrypt_account_description
+from .crypto import encrypt_account_description, decrypt_account_description, get_description_key
 
 def create_db_conn(database_path):
     conn = connect(database_path)
@@ -86,7 +86,7 @@ class Database:
         key = (user_token, account)
         if key not in self.__account_hashes:
             salt = self.get_user_salt(user_token)
-            acount_hash = hash_account_name(user_token, account, salt)
+            account_hash = hash_account_name(user_token, account, salt)
 
             self.__account_hashes[key] = account_hash
 
@@ -205,14 +205,14 @@ class Database:
 
             if description is not None:
                 description_key = self.__get_account_key(user_token, account)
-                description = decrypt_account_description(description_key
+                description = decrypt_account_description(description_key,
                                                           description)
 
             return AccountInfo(description, tax_group)
         else:
             return None
 
-    def set_asset_affinities(self, user_token, asset_affinities, saleable_assets):
+    def set_asset_affinities(self, user_token, asset_affinities, asset_sales_mask):
         salted_token = self.__get_user_hash_user_salt(user_token)
 
         self.__return_one(''.join,
@@ -221,7 +221,7 @@ class Database:
 
         for affinity in asset_affinities:
             asset_tax_group = AssetTaxGroup(affinity.asset, affinity.tax_group)
-            can_sell = 1 if asset_tax_group in saleable_assets else 0
+            can_sell = 0 if asset_tax_group in asset_sales_mask else 1
             cmd = "INSERT INTO AssetAffinities (User, TaxGroupID, AssetID, Priority, CanSell) VALUES (?, (SELECT ID FROM TaxGroups WHERE Name == ?), (SELECT ID FROM Assets WHERE Abbreviation == ?), ?, ?)"
             self.__return_one(''.join,
                               cmd,
@@ -231,12 +231,12 @@ class Database:
                               affinity.priority,
                               can_sell)
 
-    def get_saleable_assets(self, user_token):
+    def get_asset_sales_mask(self, user_token):
         salted_token = self.__get_user_hash_user_salt(user_token)
 
-        cmd = "SELECT Asset, TaxGroup FROM SaleableAssetsMap WHERE User == ?"
+        cmd = "SELECT Asset, TaxGroup FROM AssetSalesMask WHERE User == ?"
 
-        return set(self.__return_iter(AssetTaxGroup._make, salted_token))
+        return self.__return_iter(AssetTaxGroup._make, cmd, salted_token)
 
     def add_symbol(self, symbol, asset, is_default = False):
         cmd = "INSERT INTO Securities (Symbol, AssetID, IsDefault) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?)"

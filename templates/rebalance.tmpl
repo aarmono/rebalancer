@@ -7,7 +7,7 @@ portfolio = session.get_portfolio()
 rebalancer = session.get_rebalancer()
 account_target = session.get_account_target()
 
-targets_by_tax_group = rebalancer.compute_target_asset_values(portfolio, rebalance_mode)
+targets_by_tax_group = rebalancer.compute_target_asset_values(portfolio, rebalance_mode, account_target.get_asset_sales_mask())
 portfolio_transactions = portfolio.get_transactions_to_match_target(targets_by_tax_group)
 
 total_value = portfolio.current_value()

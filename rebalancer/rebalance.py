@@ -5,6 +5,7 @@ from itertools import chain
 from functools import partial, cmp_to_key
 
 from .utils import compute_percent_difference
+from .db import AssetTaxGroup
 
 class RebalanceMode:
     FULL            = "Rebalance everything"
@@ -16,21 +17,28 @@ class Rebalancer:
         self.__security_db = security_db
         self.__account_target = account_target
 
-    def compute_target_asset_values(self, portfolio, rebalance_mode):
+    def compute_target_asset_values(self, portfolio, rebalance_mode, asset_sales_mask):
         rebalance_full = rebalance_mode == RebalanceMode.FULL
 
         seed_tax_groups = []
+        seed_asset_tax_groups = set(asset_sales_mask)
+        current_asset_values = portfolio.assets_by_tax_status()
         if rebalance_mode == RebalanceMode.NO_SELL_TAXABLE:
             seed_tax_groups = [portfolio.TaxStatus.TAXABLE]
         elif rebalance_mode == RebalanceMode.NO_SELL:
             seed_tax_groups = portfolio.assets_by_tax_status().keys()
 
+        for tax_group in seed_tax_groups:
+            for asset in current_asset_values[tax_group].keys():
+                to_add = AssetTaxGroup(asset, tax_group)
+                seed_asset_tax_groups.add(to_add)
+
         return self.__compute_target_asset_values_parameterized(portfolio,
-                                                                seed_tax_groups)
+                                                                seed_asset_tax_groups)
 
     def __compute_target_asset_values_parameterized(self,
                                                     portfolio,
-                                                    seed_tax_groups):
+                                                    seed_asset_tax_groups):
         target_asset_group_values = self.__account_target.get_target_asset_group_values(portfolio)
         target_asset_values = self.__account_target.get_target_asset_values(portfolio)
 
@@ -38,20 +46,19 @@ class Rebalancer:
         tax_status_amounts = dict([(x, y.current_value()) for (x, y) in current_asset_values.items()])
 
         targets = defaultdict(partial(defaultdict, Decimal))
-        for tax_status in seed_tax_groups:
-            account_group = current_asset_values[tax_status]
-            for (asset, value) in account_group.items():
-                CASH = self.__security_db.Assets.CASH
+        for (asset, tax_status) in seed_asset_tax_groups:
+            value = current_asset_values[tax_status].get(asset, Decimal(0.0))
+            CASH = self.__security_db.Assets.CASH
 
-                group = self.__security_db.get_asset_group_for_asset(asset)
-                target_value = Decimal(0.0) if asset == CASH else value
-                targets[tax_status][asset] = target_value
+            group = self.__security_db.get_asset_group_for_asset(asset)
+            target_value = Decimal(0.0) if asset == CASH else value
+            targets[tax_status][asset] = target_value
 
-                tax_status_amounts[tax_status] -= target_value
-                target_asset_group_values[group] = max(Decimal(0.0),
-                                                       target_asset_group_values[group] - target_value)
-                target_asset_values[asset] = max(Decimal(0.0),
-                                                 target_asset_values[asset] - target_value)
+            tax_status_amounts[tax_status] -= target_value
+            target_asset_group_values[group] = max(Decimal(0.0),
+                                                   target_asset_group_values[group] - target_value)
+            target_asset_values[asset] = max(Decimal(0.0),
+                                             target_asset_values[asset] - target_value)
 
         # Idea for new account allocation policy:
         # 1) Get the asset with the highest priority for each tax group

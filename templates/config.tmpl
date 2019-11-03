@@ -33,8 +33,9 @@ for entry in session.get_account_entries():
     end
 end
 
+account_target = session.get_account_target()
 assets = sorted(unsorted_assets, key=lambda x: asset_ids[x])
-saleable_assets = database.get_saleable_assets(user_token)
+asset_sales_mask = account_target.get_asset_sales_mask()
 %>
 
 % include('templates/account_config_editor.tmpl', account_entries = session.get_account_entries(), database = database)

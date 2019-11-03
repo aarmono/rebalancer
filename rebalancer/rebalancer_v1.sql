@@ -281,7 +281,7 @@ INNER JOIN
     TaxGroups ON AssetAffinities.TaxGroupID == TaxGroups.ID
 ;
 
-CREATE VIEW SaleableAssetsMap
+CREATE VIEW AssetSalesMask
 AS
 SELECT
     AssetAffinities.User     AS "User",
@@ -294,7 +294,7 @@ INNER JOIN
 INNER JOIN
     TaxGroups ON AssetAffinities.TaxGroupID == TaxGroups.ID
 WHERE
-    AssetAffinities.CanSell != 0
+    AssetAffinities.CanSell == 0
 ;
 
 CREATE VIEW AssetTargetsMap

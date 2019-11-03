@@ -7,65 +7,67 @@ from .utils import round_cents
 
 DEFAULT = "DEFAULT"
 
-def get_asset_targets_by_id(database, salted_user_hash):
+def get_asset_targets_by_id(database, user_token):
     ret = {}
-    for (asset, target) in database.get_asset_targets(salted_user_hash):
+    for (asset, target) in database.get_asset_targets(user_token):
         ret[asset] = (Decimal(target) / 1000).quantize(Decimal('0.001'))
 
     return ret
 
-def get_asset_targets(database, salted_user_hash):
-    ret = get_asset_targets_by_id(database, salted_user_hash)
+def get_asset_targets(database, user_token):
+    ret = get_asset_targets_by_id(database, user_token)
     if len(ret) == 0:
         ret = get_asset_targets_by_id(database, DEFAULT)
 
     return ret
 
-def get_asset_tax_affinity_by_id(database, salted_user_hash):
+def get_asset_tax_affinity_by_id(database, user_token):
     affinity = defaultdict(list)
-    for (asset, tax_group) in database.get_asset_tax_affinity(salted_user_hash):
+    for (asset, tax_group) in database.get_asset_tax_affinity(user_token):
         affinity[asset].append(tax_group)
 
     return dict(affinity.items())
 
-def get_asset_tax_affinity(database, salted_user_hash):
-    ret = get_asset_tax_affinity_by_id(database, salted_user_hash)
+def get_asset_tax_affinity(database, user_token):
+    ret = get_asset_tax_affinity_by_id(database, user_token)
     if len(ret) == 0:
         ret = get_asset_tax_affinity_by_id(database, DEFAULT)
 
     return ret
 
-def get_tax_group_asset_affinity_by_id(database, salted_user_hash):
+def get_tax_group_asset_affinity_by_id(database, user_token):
     affinity = defaultdict(list)
-    for (asset, tax_group) in database.get_tax_group_asset_affinity(salted_user_hash):
+    for (asset, tax_group) in database.get_tax_group_asset_affinity(user_token):
         affinity[tax_group].append(asset)
 
     return dict(affinity.items())
 
-def get_tax_group_asset_affinity(database, salted_user_hash):
-    ret = get_tax_group_asset_affinity_by_id(database, salted_user_hash)
+def get_tax_group_asset_affinity(database, user_token):
+    ret = get_tax_group_asset_affinity_by_id(database, user_token)
     if len(ret) == 0:
         ret = get_tax_group_asset_affinity_by_id(database, DEFAULT)
 
     return ret
 
-class AccountTarget:
-    def __init__(self, user_token, security_db, database = None):
-        self.__security_db = security_db
+def get_asset_sales_mask_by_id(database, user_token):
+    return set(database.get_asset_sales_mask(user_token))
 
-        if database is None:
-            with Database() as db:
-                self.__init_from_db(user_token, security_db, db)
-        else:
-            self.__init_from_db(user_token, security_db, database)
+def get_asset_sales_mask(database, user_token):
+    ret = get_asset_sales_mask_by_id(database, user_token)
+    if len(ret) == 0:
+        ret = get_asset_sales_mask_by_id(database, DEFAULT)
+
+    return ret
+
+class AccountTarget:
+    def __init__(self, user_token, security_db, database):
+        self.__security_db = security_db
+        self.__init_from_db(user_token, security_db, database)
 
     def __init_from_db(self, user_token, security_db, db):
-        salt = db.get_user_salt(user_token = user_token)
-        salted_user_hash = hash_user_token_with_salt(user_token, salt = salt)
-
-        asset_targets = get_asset_targets(db, salted_user_hash)
-        asset_tax_affinity = get_asset_tax_affinity(db, salted_user_hash)
-        tax_group_asset_affinity = get_tax_group_asset_affinity(db, salted_user_hash)
+        asset_targets = get_asset_targets(db, user_token)
+        asset_tax_affinity = get_asset_tax_affinity(db, user_token)
+        tax_group_asset_affinity = get_tax_group_asset_affinity(db, user_token)
 
         asset_group_targets = defaultdict(Decimal)
         for (asset, target) in asset_targets.items():
@@ -76,6 +78,7 @@ class AccountTarget:
         self.__asset_tax_affinity = asset_tax_affinity
         self.__tax_group_asset_affinity = tax_group_asset_affinity
         self.__asset_group_targets = dict(asset_group_targets.items())
+        self.__asset_sales_mask = get_asset_sales_mask(db, user_token)
 
     def get_target_asset_percentages(self):
         return self.__asset_targets.copy()
@@ -114,7 +117,10 @@ class AccountTarget:
         return dict(targets.items())
 
     def get_asset_tax_affinity(self, asset):
-        return self.__asset_tax_affinity[asset]
+        return self.__asset_tax_affinity[asset].copy()
 
     def get_tax_group_asset_affinity(self, tax_group):
-        return self.__tax_group_asset_affinity[tax_group]
+        return self.__tax_group_asset_affinity[tax_group].copy()
+
+    def get_asset_sales_mask(self):
+        return self.__asset_sales_mask.copy()

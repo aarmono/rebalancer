@@ -2,7 +2,7 @@
 <%
 from decimal import Decimal
 
-from rebalance import AssetTaxGroup
+from rebalancer import AssetTaxGroup
 
 asset_ids = {}
 tax_groups = []
@@ -31,7 +31,7 @@ num_assets = len(assets)
         <tr>
             <th>Asset</th>
             <th>Priority</th>
-            <th>Available for Sale?</th>
+            <th>Disable Selling?</th>
         </tr>
         <%
         affinities = account_target.get_tax_group_asset_affinity(tax_status)
@@ -41,8 +41,6 @@ num_assets = len(assets)
             affinity_map[affinities[i]] = i + 1
         end
 
-        asset_tax_group = AssetTaxGroup(asset, tax_status)
-
         for asset in assets:
             cur_value = "DISABLE"
             if asset in affinity_map:
@@ -51,6 +49,8 @@ num_assets = len(assets)
 
             values = [(i, i) for i in range(1, num_assets + 1)]
             values.append(("DISABLE", "Disable"))
+
+            asset_tax_group = AssetTaxGroup(asset, tax_status)
         %>
         <tr>
             <td>{{asset}}</td>
@@ -61,7 +61,7 @@ num_assets = len(assets)
                 %end
                 </select>
             </td>
-            <td><input type = "checkbox" name="saleability/{{tax_status}}|{{asset}}" value="true" {{!'selected="selected"' if asset_tax_group in saleable_assets else ''}} /></td>
+            <td><input type = "checkbox" name="mask/{{tax_status}}|{{asset}}" value="true" {{'checked' if asset_tax_group in asset_sales_mask else ''}} /></td>
         </tr>
 
         % end

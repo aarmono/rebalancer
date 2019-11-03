@@ -6,7 +6,7 @@ from .utils import get_salt_from_file
 
 def hash_user_token(user_token):
     salt = get_salt_from_file()
-    return hash_user_token_with_salt(user_token, salt = salt)
+    return hash_user_token_with_salt(user_token, salt)
 
 def hash_user_token_with_salt(user_token, salt):
     return b64encode(pbkdf2_hmac('sha256',
@@ -22,7 +22,7 @@ def hash_account_name(user_token, account_name, salt):
 
     return b64encode(pbkdf2_hmac('sha256',
                                  account_id,
-                                 salt,
+                                 salt.encode('utf-8'),
                                  100000)).decode('utf-8')
 
 def get_description_key(user_token, account_name, salt):
@@ -33,7 +33,7 @@ def get_description_key(user_token, account_name, salt):
 
     key =  pbkdf2_hmac('sha256',
                        account_id,
-                       salt,
+                       salt.encode('utf-8'),
                        100000)
 
     return key
