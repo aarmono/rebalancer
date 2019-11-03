@@ -19,9 +19,10 @@ def get_token():
 
 @route('/rebalance', method='POST')
 def rebalance():
-    token              = request.forms.get('user_token')
-    upload             = request.files.get('upload')
-    rebalance_mode_str = request.forms.get('rebalance_mode')
+    token                  = request.forms.get('user_token')
+    upload                 = request.files.get('upload')
+    rebalance_mode_str     = request.forms.get('rebalance_mode')
+    show_dollar_values_str = request.forms.get('show_dollar_values')
 
     if upload is None:
         return "Must provide a portfolio csv file"
@@ -50,6 +51,8 @@ def rebalance():
     elif rebalance_mode_str == "NO_SELL":
         rebalance_mode = RebalanceMode.NO_SELL
 
+    show_dollar_values = show_dollar_values_str == "true"
+
     with Database() as database:
         salt = database.get_user_salt(token)
         if salt is None:
@@ -72,6 +75,7 @@ def rebalance():
             return template('templates/rebalance.tmpl',
                             user_token = token,
                             session = session,
+                            show_dollar_values = show_dollar_values,
                             rebalance_mode = rebalance_mode)
 
 @route('/configure', method='POST')

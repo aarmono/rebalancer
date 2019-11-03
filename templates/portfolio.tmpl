@@ -1,9 +1,13 @@
 
+% from rebalance import to_dollars
 
 <table>
   <tr>
     <th>Asset</th>
     <th>Actual Percentage</th>
+% if show_dollar_values:
+    <th>Actual Amount</th>
+% end
 % if target_percentages is not None:
     <th>Target Percentage</th>
     <th>Percentage Point Difference</th>
@@ -24,6 +28,9 @@ for (symbol, value) in portfolio.items():
   <tr>
     <td>{{symbol}}</td>
     <td>{{actual_percent}}%</td>
+% if show_dollar_values:
+    <td>{{to_dollars(value)}}
+% end
 % if target_percentages is not None:
     <td>{{target_percent}}%</td>
     <td>{{point_difference}}%</td>
@@ -37,6 +44,9 @@ for (symbol, value) in portfolio.items():
   <tr>
     <th>Group</th>
     <th>Actual Percentage</th>
+% if show_dollar_values:
+    <th>Actual Amount</th>
+% end
 % if target_percentages is not None:
     <th>Target Percentage</th>
     <th>Percentage Point Difference</th>
@@ -63,6 +73,9 @@ for (group, actual_value) in group_actual_values.items():
   <tr>
     <td>{{group}}</td>
     <td>{{group_percent}}</td>
+% if show_dollar_values:
+    <td>{{to_dollars(actual_value)}}</td>
+% end
 % if target_percentages is not None:
     <td>{{group_target_percent}}</td>
     <td>{{group_percent - group_target_percent}}</td>
