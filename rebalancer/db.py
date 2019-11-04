@@ -4,7 +4,10 @@ from decimal import Decimal
 from collections import namedtuple
 
 from .crypto import hash_user_token, hash_account_name, hash_user_token_with_salt
-from .crypto import encrypt_account_description, decrypt_account_description, get_description_key
+from .crypto import encrypt_account_description,\
+                    decrypt_account_description,\
+                    get_description_key,        \
+                    parallel_get_account_hashes_and_keys
 
 def create_db_conn(database_path):
     conn = connect(database_path)
@@ -88,7 +91,7 @@ class Database:
         key = (user_token, account)
         if key not in self.__account_hashes:
             salt = self.get_user_salt(user_token)
-            account_hash = hash_account_name(user_token, account, salt)
+            account_hash = hash_account_name(user_token, salt, account)
 
             self.__account_hashes[key] = account_hash
 
@@ -98,7 +101,7 @@ class Database:
         key = (user_token, account)
         if key not in self.__account_keys:
             salt = self.get_user_salt(user_token)
-            description_key = get_description_key(user_token, account, salt)
+            description_key = get_description_key(user_token, salt, account)
 
             self.__account_keys[key] = description_key
 
@@ -196,6 +199,23 @@ class Database:
         cmd = "DELETE FROM Accounts WHERE ID == ?"
         self.__return_one(str, cmd, hashed_account)
 
+
+    def preseed_account_entries(self, user_token, accounts):
+        account_hashes_to_get = list(filter(lambda x: (user_token, x) not in self.__account_hashes,
+                                            accounts))
+        account_keys_to_get = list(filter(lambda x: (user_token, x) not in self.__account_keys,
+                                          accounts))
+        if len(account_hashes_to_get) > 0 or len(account_keys_to_get) > 0:
+            salt = self.get_user_salt(user_token)
+
+            (account_hashes, account_keys) = \
+                parallel_get_account_hashes_and_keys(user_token,
+                                                     salt,
+                                                     account_hashes_to_get,
+                                                     account_keys_to_get)
+
+            self.__account_hashes.update(account_hashes)
+            self.__account_keys.update(account_keys)
 
     def get_account_info(self, user_token, account):
         hashed_account = self.__get_account_hash(user_token, account)
