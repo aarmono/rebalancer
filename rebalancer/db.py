@@ -2,6 +2,7 @@ from os import path, urandom
 from sqlite3 import connect
 from decimal import Decimal
 from collections import namedtuple
+from functools import partial
 
 from .crypto import hash_user_token, hash_account_name, hash_user_token_with_salt
 from .crypto import encrypt_account_description,\
@@ -107,6 +108,23 @@ class Database:
 
         return self.__account_keys[key]
 
+    def __preseed_account_entries(self, user_token, accounts):
+        account_hashes_to_get = list(filter(lambda x: (user_token, x) not in self.__account_hashes,
+                                            accounts))
+        account_keys_to_get = list(filter(lambda x: (user_token, x) not in self.__account_keys,
+                                          accounts))
+        if len(account_hashes_to_get) > 0 or len(account_keys_to_get) > 0:
+            salt = self.get_user_salt(user_token)
+
+            (account_hashes, account_keys) = \
+                parallel_get_account_hashes_and_keys(user_token,
+                                                     salt,
+                                                     account_hashes_to_get,
+                                                     account_keys_to_get)
+
+            self.__account_hashes.update(account_hashes)
+            self.__account_keys.update(account_keys)
+
     def get_db_version(self):
         return self.__return_one(lambda x: x[0], "PRAGMA user_version")
 
@@ -200,22 +218,25 @@ class Database:
         self.__return_one(str, cmd, hashed_account)
 
 
-    def preseed_account_entries(self, user_token, accounts):
-        account_hashes_to_get = list(filter(lambda x: (user_token, x) not in self.__account_hashes,
-                                            accounts))
-        account_keys_to_get = list(filter(lambda x: (user_token, x) not in self.__account_keys,
-                                          accounts))
-        if len(account_hashes_to_get) > 0 or len(account_keys_to_get) > 0:
-            salt = self.get_user_salt(user_token)
+    def get_account_infos(self, user_token, accounts):
+        self.__preseed_account_entries(user_token, accounts)
+        hashed_accounts = map(partial(self.__get_account_hash, user_token),
+                              accounts)
 
-            (account_hashes, account_keys) = \
-                parallel_get_account_hashes_and_keys(user_token,
-                                                     salt,
-                                                     account_hashes_to_get,
-                                                     account_keys_to_get)
+        cmd = "SELECT Description, TaxGroup FROM AccountInfoMap WHERE AccountID = ?"
+        for (account, hashed_account) in zip(accounts, hashed_accounts):
+            result = self.__return_one(tuple, cmd, hashed_account)
+            if result is not None:
+                (description, tax_group) = result
 
-            self.__account_hashes.update(account_hashes)
-            self.__account_keys.update(account_keys)
+                if description is not None:
+                    description_key = self.__get_account_key(user_token, account)
+                    description = decrypt_account_description(description_key,
+                                                              description)
+
+                yield AccountInfo(description, tax_group)
+            else:
+                yield None
 
     def get_account_info(self, user_token, account):
         hashed_account = self.__get_account_hash(user_token, account)

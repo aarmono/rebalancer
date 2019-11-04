@@ -43,7 +43,9 @@ class Session:
         if self.__account_entries is not None:
             account_names = set(map(lambda x: x.account_name,
                                     self.__account_entries))
-            db.preseed_account_entries(user_token, account_names)
+
+            account_info_iter = db.get_account_infos(user_token, account_names)
+            self.__account_info = dict(zip(account_names, account_info_iter))
 
             TaxStatus = create_tax_status(db)
             self.__portfolio = Portfolio(self.__securities_db, TaxStatus)
