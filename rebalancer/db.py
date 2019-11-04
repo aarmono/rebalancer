@@ -10,12 +10,6 @@ from .crypto import encrypt_account_description,\
                     get_description_key,        \
                     parallel_get_account_hashes_and_keys
 
-def create_db_conn(database_path):
-    conn = connect(database_path)
-    conn.execute("PRAGMA foreign_keys = ON;")
-
-    return conn
-
 AssetTarget = namedtuple('AssetTarget', 'asset target_deci_percent')
 AssetTaxGroup = namedtuple('AssetTaxGroup', 'asset tax_group')
 Security = namedtuple('Security', 'symbol asset asset_group')
@@ -31,6 +25,32 @@ DB_UPGRADE_FILENAMES = [
 ]
 
 CURRENT_DB_VERSION = 1
+
+def create_db_conn(database_path):
+    conn = connect(database_path)
+    conn.execute("PRAGMA foreign_keys = ON;")
+
+    return conn
+
+def decrypt_account_info(val):
+    (encrypted_info, description_key) = val
+    if encrypted_info is not None:
+        (description, tax_group) = encrypted_info
+
+        if description is not None:
+            description = decrypt_account_description(description_key,
+                                                      description)
+
+        return AccountInfo(description, tax_group)
+    else:
+        return None
+
+def decrypt_account_infos(encrypted_infos, account_keys):
+    worklist = list(zip(encrypted_infos, account_keys))
+
+    from multiprocessing import Pool
+    with Pool() as p:
+        return list(p.map(decrypt_account_info, worklist))
 
 class Database:
     def __init__(self):
@@ -220,23 +240,17 @@ class Database:
 
     def get_account_infos(self, user_token, accounts):
         self.__preseed_account_entries(user_token, accounts)
+
+        account_keys = map(partial(self.__get_account_key, user_token),
+                           accounts)
+
         hashed_accounts = map(partial(self.__get_account_hash, user_token),
                               accounts)
 
         cmd = "SELECT Description, TaxGroup FROM AccountInfoMap WHERE AccountID = ?"
-        for (account, hashed_account) in zip(accounts, hashed_accounts):
-            result = self.__return_one(tuple, cmd, hashed_account)
-            if result is not None:
-                (description, tax_group) = result
-
-                if description is not None:
-                    description_key = self.__get_account_key(user_token, account)
-                    description = decrypt_account_description(description_key,
-                                                              description)
-
-                yield AccountInfo(description, tax_group)
-            else:
-                yield None
+        encrypted_infos = map(partial(self.__return_one, tuple, cmd),
+                              hashed_accounts)
+        return decrypt_account_infos(encrypted_infos, account_keys)
 
     def get_account_info(self, user_token, account):
         hashed_account = self.__get_account_hash(user_token, account)
