@@ -15,7 +15,7 @@ table, th, td {
 <form action="/rebalance" method="post" enctype="multipart/form-data">
   <p>
     <label for="upload">Select a file: </label>
-    <input type="file" name="upload" />
+    <input type="file" name="upload" accept=".csv,text/csv" />
   </p>
   <p>
     <label for="user_token">Token (<a href="/get_token">Get Token</a>): </label>
@@ -47,7 +47,7 @@ table, th, td {
 <form action="/configure" method="post" enctype="multipart/form-data">
   <p>
     <label for="upload">Select a file: </label>
-    <input type="file" name="upload" />
+    <input type="file" name="upload" accept=".csv,text/csv" />
   </p>
   <p>
     <label for="user_token">Token (<a href="/get_token">Get Token</a>): </label>
