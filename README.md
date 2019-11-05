@@ -148,7 +148,10 @@ The tool will also list out all the Asset Classes it found and allow target
 percentages to be assigned. The sum of these percentages must add up to 100.
 The tool also lists out each Asset Class under each Tax Group and allow
 Affinities to be set. If "Disable" is selected, the tool will not attempt to
-allocate that Asset Class into that Tax Group.
+allocate that Asset Class into that Tax Group. A checkbox is also provided to
+disable selling of assets in an Asset Class within a specified Tax Group. This
+can be useful to prevent the sale of assets which have not been held for at
+least a year, or to prevent wash sales, or for other individual situations.
 
 Once everything is set up correctly, click the "Update Config" button to have
 the values save in the database.
@@ -169,6 +172,9 @@ and csv file under the "Rebalance" section. There are three rebalancing modes
   IRA, 401(k)) accounts. This is slightly safer than "Rebalance everything" but
   still should be *used with caution* as it too will recommend transactions that
   may *completely change* your portfolio.
+
+Regardless of the mode selected, if you have disabled the sale of an Asset Class
+in the Configure page, it will not be sold.
 
 The "Credit to taxable account" and "Credit to tax-deferred account" allow
 dollar amounts to be added to the sweep accounts of the taxable and
