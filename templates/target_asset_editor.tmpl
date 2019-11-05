@@ -11,7 +11,7 @@ target_percentages = account_target.get_target_asset_percentages()
 <p>
     % target = target_percentages.get(asset)
     <label for="allocation/{{asset}}">{{asset}}: </label>
-    <input name="allocation/{{asset}}" type="number" step=".1" value="{{target * 100 if target is not None else ''}}">
+    <input name="allocation/{{asset}}" type="number" step=".1" value="{{(target * 100).quantize(Decimal('1.0')) if target is not None else ''}}">
 </p>
 
 % end
