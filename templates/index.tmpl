@@ -25,7 +25,8 @@ table, th, td {
   </p>
   <p>
     <select name="rebalance_mode">
-      % for (val, desc) in RebalanceMode.__dict__.items():
+      % modes = filter(lambda x: x[0][0] != '_', RebalanceMode.__dict__.items())
+      % for (val, desc) in sorted(modes, key = lambda x: x[0]):
       % if val[0] != '_':
       <option value="{{val}}">{{desc}}</option>
       % end

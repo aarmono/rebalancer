@@ -43,15 +43,9 @@ def rebalance():
     except Exception:
         pass
 
-    rebalance_mode = RebalanceMode.FULL
-    if rebalance_mode_str == "FULL":
-        rebalance_mode = RebalanceMode.FULL
-    elif rebalance_mode_str == "NO_SELL_TAXABLE":
-        rebalance_mode = RebalanceMode.NO_SELL_TAXABLE
-    elif rebalance_mode_str == "NO_SELL":
-        rebalance_mode = RebalanceMode.NO_SELL
-    elif rebalance_mode_str == "RESHUFFLE":
-        rebalance_mode = RebalanceMode.RESHUFFLE
+    rebalance_dict = dict(filter(lambda x: x[0][0] != '_',
+                                 RebalanceMode.__dict__.items()))
+    rebalance_mode = rebalance_dict.get(rebalance_mode_str, RebalanceMode.SELL_ALL)
 
     show_dollar_values = show_dollar_values_str == "true"
 

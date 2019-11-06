@@ -8,7 +8,7 @@ from .utils import compute_percent_difference
 from .db import AssetTaxGroup
 
 class RebalanceMode:
-    FULL            = "Rebalance everything"
+    SELL_ALL        = "Rebalance everything"
     NO_SELL_TAXABLE = "Rebalance without selling in Taxable"
     NO_SELL         = "Rebalance without selling"
     RESHUFFLE       = "Move without rebalancing"
@@ -27,7 +27,7 @@ class Rebalancer:
         self.__account_target = account_target
 
     def compute_target_asset_values(self, portfolio, rebalance_mode, asset_sales_mask):
-        rebalance_full = rebalance_mode == RebalanceMode.FULL
+        rebalance_full = rebalance_mode == RebalanceMode.SELL_ALL
 
         seed_tax_groups = []
         seed_asset_tax_groups = set(asset_sales_mask)

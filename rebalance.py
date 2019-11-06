@@ -147,7 +147,7 @@ def main():
                       help="Verbose output")
 
     (options, args) = parser.parse_args()
-    rebalance_mode = RebalanceMode.NO_SELL if options.no_sell else RebalanceMode.FULL
+    rebalance_mode = RebalanceMode.NO_SELL if options.no_sell else RebalanceMode.SELL_ALL
 
     apikey = None
     try:
