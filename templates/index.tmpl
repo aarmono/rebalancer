@@ -10,6 +10,8 @@ table, th, td {
 </head>
 <body>
 
+% from rebalancer import RebalanceMode
+
 <h1>Rebalance</h1>
 
 <form action="/rebalance" method="post" enctype="multipart/form-data">
@@ -23,9 +25,11 @@ table, th, td {
   </p>
   <p>
     <select name="rebalance_mode">
-      <option value="NO_SELL">Rebalance without selling</option>
-      <option value="FULL">Rebalance everything</option>
-      <option value="NO_SELL_TAXABLE">Rebalance without selling in Taxable</option>
+      % for (val, desc) in RebalanceMode.__dict__.items():
+      % if val[0] != '_':
+      <option value="{{val}}">{{desc}}</option>
+      % end
+      % end
     </select>
   </p>
   <p>
