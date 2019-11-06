@@ -91,7 +91,8 @@ class Account:
             if not self.__security_db.supports_fractional_shares(symbol):
                 shares = int(floor(value / cost_per_share))
             else:
-                has_mutual_funds = True
+                if self.__security_db.get_asset_class(symbol) != "Cash":
+                    has_mutual_funds = True
                 shares = value / cost_per_share
 
             buy_symbols[symbol] = (shares, cost_per_share)
