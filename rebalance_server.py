@@ -50,6 +50,8 @@ def rebalance():
         rebalance_mode = RebalanceMode.NO_SELL_TAXABLE
     elif rebalance_mode_str == "NO_SELL":
         rebalance_mode = RebalanceMode.NO_SELL
+    elif rebalance_mode_str == "RESHUFFLE":
+        rebalance_mode = RebalanceMode.RESHUFFLE
 
     show_dollar_values = show_dollar_values_str == "true"
 
