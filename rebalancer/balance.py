@@ -2,6 +2,7 @@ from decimal import Decimal
 from collections import defaultdict
 from functools import partial, cmp_to_key
 from itertools import chain, product
+from math import floor
 
 from .utils import round_cents
 
@@ -34,7 +35,7 @@ def compute_minimal_remainder_purchase(rebalance, available_funds, max_values):
         delta = 3
         min_shares = int(max(0, shares - delta))
         max_available_shares = floor(max_values[symbol] / sell_price)
-        max_shares = int(min(shares + delta + 1), max_available_shares)
+        max_shares = int(min(shares + delta + 1, max_available_shares))
         cur = [(symbol, (x, sell_price)) for x in range(min_shares, max_shares)]
 
         rebalance_items.append(cur)
