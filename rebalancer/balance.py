@@ -26,14 +26,15 @@ def compute_transaction_price(transaction):
 
     return transaction_price
 
-def compute_minimal_remainder_purchase(rebalance, available_funds):
+def compute_minimal_remainder_purchase(rebalance, available_funds, max_values):
     rebalance_items = []
     # Construct transactions for each position selling one less share, one
     # more share, and the nominal number of shares
     for (symbol, (shares, sell_price)) in rebalance.items():
         delta = 3
         min_shares = int(max(0, shares - delta))
-        max_shares = int(shares + delta + 1)
+        max_available_shares = floor(max_values[symbol] / sell_price)
+        max_shares = int(min(shares + delta + 1), max_available_shares)
         cur = [(symbol, (x, sell_price)) for x in range(min_shares, max_shares)]
 
         rebalance_items.append(cur)

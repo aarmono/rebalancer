@@ -100,7 +100,8 @@ class Account:
 
         if not has_mutual_funds:
             buy_symbols = compute_minimal_remainder_purchase(buy_symbols,
-                                                             available_funds)
+                                                             available_funds,
+                                                             self.__positions)
         else:
             # Evenly split the remaining funds between all mutual funds in
             # the account. Since the remaining amount should be small (price
