@@ -47,19 +47,19 @@ def compute_minimal_remainder_purchase(rebalance, available_funds, max_values):
     # generate a list of all possible transactions from the items we
     # constructed for each position above
     from multiprocessing import Pool
-    p = Pool()
-    transactions_to_try = list(product(*rebalance_items))
-    transaction_prices = list(p.map(compute_transaction_price, transactions_to_try))
-    for idx in range(0, len(transaction_prices)):
-        transaction_price = transaction_prices[idx]
+    with Pool() as p:
+        transactions_to_try = list(product(*rebalance_items))
+        transaction_prices = list(p.map(compute_transaction_price, transactions_to_try))
+        for idx in range(0, len(transaction_prices)):
+            transaction_price = transaction_prices[idx]
 
-        if transaction_price < available_funds and transaction_price > best_transaction_price:
-           best_transaction_idx = idx
-           best_transaction_price = transaction_price
+            if transaction_price < available_funds and transaction_price > best_transaction_price:
+               best_transaction_idx = idx
+               best_transaction_price = transaction_price
 
-    if best_transaction_idx < 0:
-        return {}
-    else:
-        best_transaction = filter(lambda x: x[1][0] > 0,
-                                  transactions_to_try[best_transaction_idx])
-        return dict(best_transaction)
+        if best_transaction_idx < 0:
+            return {}
+        else:
+            best_transaction = filter(lambda x: x[1][0] > 0,
+                                      transactions_to_try[best_transaction_idx])
+            return dict(best_transaction)
