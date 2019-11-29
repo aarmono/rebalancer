@@ -4,7 +4,7 @@ from decimal import Decimal
 from collections import defaultdict
 import argparse
 
-from bottle import template, route, run, request
+from bottle import template, route, run, request, static_file
 from rebalancer import RebalanceMode, Database, AssetAffinity, Session, AssetTaxGroup
 
 QUOTE_KEY = None
@@ -12,6 +12,10 @@ QUOTE_KEY = None
 @route('/')
 def index():
     return template('templates/index.tmpl')
+
+@route('/js/<filename:path>')
+def send_static(filename):
+    return static_file(filename, root='js')
 
 @route('/get_token')
 def get_token():
