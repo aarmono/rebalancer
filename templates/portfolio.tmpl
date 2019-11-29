@@ -12,6 +12,9 @@
 % end
 % if target_percentages is not None:
     <th>Target Percentage</th>
+% if show_dollar_values:
+    <th>Target Amount</th>
+% end
     <th>Percentage Point Difference</th>
 % end
   </tr>
@@ -35,6 +38,9 @@ for (symbol, value) in portfolio.items():
 % end
 % if target_percentages is not None:
     <td>{{target_percent}}%</td>
+% if show_dollar_values:
+    <td>{{to_dollars(total_value * target_percentages[symbol])}}</td>
+% end
     <td>{{point_difference}}%</td>
 % end
   </tr>
