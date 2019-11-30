@@ -9,9 +9,17 @@ asset_targets = account_target.get_asset_targets()
 
 % for asset in assets:
 <p>
-    % (target, _) = asset_targets.get(asset)
+    % (target, target_type) = asset_targets.get(asset)
+    % if target is not None and (target_type == "Percent" or target_type == "Percent Remainder"):
+    %   target = (target * 100).quantize(Decimal('1.0'))
+    % end
     <label for="allocation/{{asset}}">{{asset}}: </label>
-    <input name="allocation/{{asset}}" type="number" step=".1" value="{{(target * 100).quantize(Decimal('1.0')) if target is not None else ''}}">
+    <input name="allocation/{{asset}}" type="number" step=".1" value="{{target if target is not None else ''}}">
+    <select name="allocation_type/{{asset}}">
+        <option value="Percent"           {{!'selected="selected"' if target_type == "Percent" else ''}}>%</option>
+        <option value="Dollars"           {{!'selected="selected"' if target_type == "Dollars" else ''}}>$</option>
+        <option value="Percent Remainder" {{!'selected="selected"' if target_type == "Percent Remainder" else ''}}>% Remainder</option>
+    </select>
 </p>
 
 % end

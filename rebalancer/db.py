@@ -160,9 +160,9 @@ class Database:
                           "DELETE FROM Targets WHERE User == ?",
                           user_hash)
 
-        for (asset, target_deci_percent) in asset_targets:
-            cmd = "INSERT INTO Targets (User, AssetID, Target, TargetType) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?, (SELECT ID FROM TargetTypes WHERE Name == 'Percent'))"
-            self.__return_one(str, cmd, user_hash, asset, target_deci_percent)
+        for (asset, target, target_type) in asset_targets:
+            cmd = "INSERT INTO Targets (User, AssetID, Target, TargetType) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?, (SELECT ID FROM TargetTypes WHERE Name == ?))"
+            self.__return_one(str, cmd, user_hash, asset, target, target_type)
 
     def get_asset_tax_affinity(self, user_token):
         user_hash = self.__get_user_hash_user_salt(user_token)

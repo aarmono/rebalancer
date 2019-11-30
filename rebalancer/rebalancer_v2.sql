@@ -12,6 +12,11 @@ CREATE TABLE TargetTypes
 
 INSERT INTO TargetTypes (Name) VALUES ("Percent");
 INSERT INTO TargetTypes (Name) VALUES ("Dollars");
+-- For portfolios which use a fixed dollar target or fixed percentage targets
+-- which do not add up to 100%, this is the percent the remainder of the
+-- portfolio value after computing the target values from the fixed percentage
+-- and fixed dollar allocations
+INSERT INTO TargetTypes (Name) VALUES ("Percent Remainder");
 
 CREATE TABLE Targets_V2
 (

@@ -110,7 +110,8 @@ def configure_update():
     affinities = []
     account_info = defaultdict(dict)
     asset_set = set()
-    asset_deci_perentages = {}
+    asset_target_values = {}
+    asset_target_types = {}
     asset_sales_mask = set()
 
     with Database() as database:
@@ -135,8 +136,11 @@ def configure_update():
                 elif section == "allocation":
                     asset_set.add(subelement)
 
-                    deci_percent = int(Decimal(value) * 10)
-                    asset_deci_perentages[subelement] = deci_percent
+                    asset_target_values[subelement] = Decimal(value)
+                elif section == "allocation_type":
+                    asset_set.add(subelement)
+
+                    asset_target_types[subelement] = value
             except Exception as ex:
                 print(ex)
                 pass
@@ -157,8 +161,20 @@ def configure_update():
                                      description,
                                      tax_group)
 
-        database.set_asset_targets(user_token,
-                                   asset_deci_perentages.items())
+        asset_targets = []
+        for asset in asset_set:
+            target_type = asset_target_types[asset]
+            target = asset_target_values[asset]
+            if target_type == "Percent" or target_type == "Percent Remainder":
+                target = int(target * 10)
+            elif target_type == "Dollars":
+                target = int(target)
+            else:
+                raise KeyError("Invalid TargetType: %s" % (target_type))
+
+            asset_targets.append((asset, target, target_type))
+
+        database.set_asset_targets(user_token, asset_targets)
 
         database.commit()
 
