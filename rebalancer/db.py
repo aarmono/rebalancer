@@ -21,7 +21,8 @@ AssetAffinity = namedtuple('AssetAffinity', 'asset tax_group priority')
 
 
 DB_UPGRADE_FILENAMES = [
-    "rebalancer_v1.sql"
+    "rebalancer_v1.sql",
+    "rebalancer_v2.sql"
 ]
 
 CURRENT_DB_VERSION = 1
@@ -150,7 +151,7 @@ class Database:
 
     def get_asset_targets(self, user_token):
         user_hash = self.__get_user_hash_user_salt(user_token)
-        cmd = "SELECT Asset, TargetDeciPercent FROM AssetTargetsMap WHERE User == ?"
+        cmd = "SELECT Asset, Target FROM AssetTargetsMap WHERE User == ?"
         return self.__return_iter(AssetTarget._make, cmd, user_hash)
 
     def set_asset_targets(self, user_token, asset_targets):
@@ -160,7 +161,7 @@ class Database:
                           user_hash)
 
         for (asset, target_deci_percent) in asset_targets:
-            cmd = "INSERT INTO Targets (User, AssetID, TargetDeciPercent) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?)"
+            cmd = "INSERT INTO Targets (User, AssetID, Target, TargetType) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?, (SELECT ID FROM TargetTypes WHERE Name == 'DeciPercent'))"
             self.__return_one(str, cmd, user_hash, asset, target_deci_percent)
 
     def get_asset_tax_affinity(self, user_token):
