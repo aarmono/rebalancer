@@ -3,6 +3,13 @@
 
 <h{{n}}>{{title}}</h{{n}}>
 
+<%
+if getattr(portfolio, 'assets_by_tax_status', None) is not None:
+    include('templates/pie_chart.tmpl', portfolio=portfolio)
+end
+%>
+
+
 <table>
   <tr>
     <th>Asset</th>

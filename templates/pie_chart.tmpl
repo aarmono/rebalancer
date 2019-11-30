@@ -1,0 +1,52 @@
+
+<%
+from itertools import repeat
+
+tax_groups = portfolio.assets_by_tax_status()
+labels = [ "Portfolio" ] + list(tax_groups.keys())
+ids = list(labels)
+parents = [ "" ] + list(repeat("Portfolio", len(tax_groups)))
+values = [ int(portfolio.current_value() * 100) ] + [ int(x.current_value() * 100) for x in tax_groups.values() ]
+
+for (tax_group, assets) in tax_groups.items():
+    for (asset, value) in assets.items():
+        value = int(value * 100)
+        if value > 0:
+            id = tax_group + " - " + asset
+            ids.append(id)
+            labels.append(asset)
+            parents.append(tax_group)
+            values.append(value)
+        end
+    end
+end
+%>
+
+<p>
+<div id="{{title}}_chart"></div>
+</p>
+
+<script>
+    var data = [{
+        type: "sunburst",
+        labels: {{!labels}},
+        ids: {{!ids}},
+        parents: {{!parents}},
+        values:  {{!values}},
+        outsidetextfont: {size: 20, color: "#377eb8"},
+        leaf: {opacity: 0.4},
+        marker: {line: {width: 2}},
+        branchvalues: 'total',
+        hoverinfo: 'label+text+percent parent'
+    }];
+
+    var layout = {
+        margin: {l: 0, r: 0, b: 0, t: 0},
+        width: 500,
+        height: 500
+    };
+
+
+    Plotly.newPlot('{{title}}_chart', data, layout, {showSendToCloud:false});
+
+</script>
