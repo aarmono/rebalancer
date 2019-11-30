@@ -31,7 +31,7 @@ def print_composition(title, account_target, portfolio):
     print(title + ":")
     total_value = portfolio.current_value()
     target_values = account_target.get_target_asset_values(portfolio)
-    target_percentages = account_target.get_target_asset_percentages()
+    target_percentages = account_target.get_target_asset_percentages(portfolio)
     for (symbol, value) in portfolio.items():
         actual_percent = ((value / total_value) * 100).quantize(Decimal('1.0'))
         target_value = target_values[symbol]

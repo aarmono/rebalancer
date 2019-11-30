@@ -12,7 +12,7 @@ portfolio_transactions = portfolio.get_transactions_to_match_target(targets_by_t
 
 total_value = portfolio.current_value()
 target_values = account_target.get_target_asset_values(portfolio)
-target_percentages = account_target.get_target_asset_percentages()
+target_percentages = account_target.get_target_asset_percentages(portfolio)
 
 new_portfolio = portfolio.copy_with_transactions_applied(portfolio_transactions)
 %>

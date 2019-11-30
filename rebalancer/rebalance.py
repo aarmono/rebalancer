@@ -53,7 +53,7 @@ class Rebalancer:
         else:
             target_asset_group_values = self.__account_target.get_target_asset_group_values(portfolio)
             target_asset_values = self.__account_target.get_target_asset_values(portfolio)
-            target_asset_percentages = self.__account_target.get_target_asset_percentages()
+            target_asset_percentages = self.__account_target.get_target_asset_percentages(portfolio)
 
         return self.__compute_target_asset_values_parameterized(portfolio,
                                                                 seed_asset_tax_groups,

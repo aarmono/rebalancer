@@ -9,8 +9,16 @@ DEFAULT = "DEFAULT"
 
 def get_asset_targets_by_id(database, user_token):
     ret = {}
-    for (asset, target) in database.get_asset_targets(user_token):
-        ret[asset] = (Decimal(target) / 1000).quantize(Decimal('0.001'))
+    for (asset, target, target_type) in database.get_asset_targets(user_token):
+        value = None
+        if target_type == "Percent":
+            value = (Decimal(target) / 1000).quantize(Decimal('0.001'))
+        elif target_type == "Dollars":
+            value = round_cents(Decimal(target))
+        else:
+            raise KeyError("Invalid TargetType: %s" % (target_type))
+
+        ret[asset] = (value, target_type)
 
     return ret
 
@@ -69,30 +77,62 @@ class AccountTarget:
         asset_tax_affinity = get_asset_tax_affinity(db, user_token)
         tax_group_asset_affinity = get_tax_group_asset_affinity(db, user_token)
 
-        asset_group_targets = defaultdict(Decimal)
-        for (asset, target) in asset_targets.items():
-            asset_group = security_db.get_asset_group_for_asset(asset)
-            asset_group_targets[asset_group] += target
-
         self.__asset_targets = asset_targets
         self.__asset_tax_affinity = asset_tax_affinity
         self.__tax_group_asset_affinity = tax_group_asset_affinity
-        self.__asset_group_targets = dict(asset_group_targets.items())
         self.__asset_sales_mask = get_asset_sales_mask(db, user_token)
 
-    def get_target_asset_percentages(self):
+    def __get_target_asset_percent(self, asset, current_value):
+        (target, target_type) = self.__asset_targets[asset]
+        if target_type == "Percent":
+            return target
+        elif target_type == "Dollars":
+            return target / current_value
+        else:
+            raise KeyError("Invalid TargetType: %s" % (target_type))
+
+    def __get_target_asset_value(self, asset, current_value):
+        (target, target_type) = self.__asset_targets[asset]
+        if target_type == "Percent":
+            return round_cents(target * current_value)
+        elif target_type == "Dollars":
+            return target
+        else:
+            raise KeyError("Invalid TargetType: %s" % (target_type))
+
+    def get_asset_targets(self):
         return self.__asset_targets.copy()
 
-    def get_target_asset_group_percentages(self):
-        return self.__asset_group_targets.copy()
+    def get_target_asset_percentages(self, portfolio):
+        current_value = portfolio.current_value()
+
+        ret = {}
+        for (asset, (target, target_type)) in self.__asset_targets.items():
+            if target_type == "Percent":
+                ret[asset] = target
+            elif target_type == "Dollars":
+                ret[asset] = target / current_value
+            else:
+                raise KeyError("Invalid TargetType: %s" % (target_type))
+
+        return ret
+
+    def get_target_asset_group_percentages(self, portfolio):
+        target_asset_percentages = self.get_target_asset_percentages(portfolio)
+
+        ret = defaultdict(Decimal)
+        for (asset, percent) in target_asset_percentages.items():
+            asset_group = self.__security_db.get_asset_group_for_asset(asset)
+            ret[asset_group] += percent
+
+        return dict(ret.items())
 
     def get_target_asset_values(self, portfolio):
         targets = {}
 
         total_value = portfolio.current_value()
         for (asset, value) in portfolio.items():
-            target = self.__asset_targets[asset] * total_value
-            targets[asset] = round_cents(target)
+            targets[asset] = self.__get_target_asset_value(asset, total_value)
 
         return targets
 
@@ -101,9 +141,9 @@ class AccountTarget:
 
         total_value = portfolio.current_value()
         for (asset, value) in portfolio.items():
-            target = self.__asset_targets[asset] * total_value
+            target = self.__get_target_asset_value(asset, total_value)
             asset_group = self.__security_db.get_asset_group_for_asset(asset)
-            targets[asset_group] += round_cents(target)
+            targets[asset_group] += target
 
         return dict(targets.items())
 

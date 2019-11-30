@@ -15,7 +15,7 @@ for (asset, id) in database.get_asset_abbreviations():
     asset_ids[asset] = id
 end
 
-assets = sorted(account_target.get_target_asset_percentages().keys(),
+assets = sorted(account_target.get_asset_targets().keys(),
                 key=lambda x: asset_ids[x])
 num_assets = len(assets)
 

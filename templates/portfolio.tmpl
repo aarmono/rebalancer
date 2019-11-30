@@ -73,7 +73,7 @@ group_target_values = None
 group_percentages = None
 if target_percentages is not None:
     group_target_values = account_target.get_target_asset_group_values(portfolio)
-    group_percentages = account_target.get_target_asset_group_percentages()
+    group_percentages = account_target.get_target_asset_group_percentages(portfolio)
 end
 
 for (group, actual_value) in group_actual_values.items():

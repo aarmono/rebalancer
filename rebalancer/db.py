@@ -10,7 +10,7 @@ from .crypto import encrypt_account_description,\
                     get_description_key,        \
                     parallel_get_account_hashes_and_keys
 
-AssetTarget = namedtuple('AssetTarget', 'asset target_deci_percent')
+AssetTarget = namedtuple('AssetTarget', 'asset target target_type')
 AssetTaxGroup = namedtuple('AssetTaxGroup', 'asset tax_group')
 Security = namedtuple('Security', 'symbol asset asset_group')
 AccountInfo = namedtuple('AccountInfo', 'description tax_status')
@@ -151,7 +151,7 @@ class Database:
 
     def get_asset_targets(self, user_token):
         user_hash = self.__get_user_hash_user_salt(user_token)
-        cmd = "SELECT Asset, Target FROM AssetTargetsMap WHERE User == ?"
+        cmd = "SELECT Asset, Target, TargetType FROM AssetTargetsMap WHERE User == ?"
         return self.__return_iter(AssetTarget._make, cmd, user_hash)
 
     def set_asset_targets(self, user_token, asset_targets):

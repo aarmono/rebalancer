@@ -2,14 +2,14 @@
 <%
 from decimal import Decimal
 
-target_percentages = account_target.get_target_asset_percentages()
+asset_targets = account_target.get_asset_targets()
 %>
 
 <h1>Configure Target Positions</h1>
 
 % for asset in assets:
 <p>
-    % target = target_percentages.get(asset)
+    % (target, _) = asset_targets.get(asset)
     <label for="allocation/{{asset}}">{{asset}}: </label>
     <input name="allocation/{{asset}}" type="number" step=".1" value="{{(target * 100).quantize(Decimal('1.0')) if target is not None else ''}}">
 </p>
