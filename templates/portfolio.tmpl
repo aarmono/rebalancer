@@ -1,14 +1,14 @@
 
 % from rebalance import to_dollars
 
+% show_pie_chart = getattr(portfolio, 'assets_by_tax_status', None) is not None
+
+% if show_pie_chart:
+<div class="horiz_content">
+<div id="{{title}}_div" class="vert_content">
+% end
+
 <h{{n}}>{{title}}</h{{n}}>
-
-<%
-if getattr(portfolio, 'assets_by_tax_status', None) is not None:
-    include('templates/pie_chart.tmpl', portfolio=portfolio)
-end
-%>
-
 
 <table>
   <tr>
@@ -98,3 +98,9 @@ for (group, actual_value) in group_actual_values.items():
   </tr>
 %end
 </table>
+
+% if show_pie_chart:
+</div>
+% include('templates/pie_chart.tmpl', portfolio=portfolio, title=title, table_id=title + "_div")
+</div>
+% end

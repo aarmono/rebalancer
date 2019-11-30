@@ -22,9 +22,7 @@ for (tax_group, assets) in tax_groups.items():
 end
 %>
 
-<p>
 <div id="{{title}}_chart"></div>
-</p>
 
 <script>
     var data = [{
@@ -41,7 +39,7 @@ end
     }];
 
     var layout = {
-        margin: {l: 0, r: 0, b: 0, t: 0},
+        margin: {l: 0, r: 0, b: 10, t: 0},
         width: 500,
         height: 500
     };
