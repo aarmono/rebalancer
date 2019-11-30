@@ -10,7 +10,7 @@ CREATE TABLE TargetTypes
     CHECK (LENGTH(Name) > 0)
 );
 
-INSERT INTO TargetTypes (Name) VALUES ("DeciPercent");
+INSERT INTO TargetTypes (Name) VALUES ("Percent");
 INSERT INTO TargetTypes (Name) VALUES ("Dollars");
 
 CREATE TABLE Targets_V2
@@ -29,7 +29,7 @@ CREATE TABLE Targets_V2
 INSERT INTO
     Targets_V2 (User, AssetID, Target, TargetType)
 SELECT
-    User, AssetID, TargetDeciPercent, (SELECT ID FROM TargetTypes WHERE Name == "DeciPercent")
+    User, AssetID, TargetDeciPercent, (SELECT ID FROM TargetTypes WHERE Name == "Percent")
 FROM
     Targets;
 

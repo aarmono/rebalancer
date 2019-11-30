@@ -161,7 +161,7 @@ class Database:
                           user_hash)
 
         for (asset, target_deci_percent) in asset_targets:
-            cmd = "INSERT INTO Targets (User, AssetID, Target, TargetType) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?, (SELECT ID FROM TargetTypes WHERE Name == 'DeciPercent'))"
+            cmd = "INSERT INTO Targets (User, AssetID, Target, TargetType) VALUES (?, (SELECT ID FROM Assets WHERE Abbreviation == ?), ?, (SELECT ID FROM TargetTypes WHERE Name == 'Percent'))"
             self.__return_one(str, cmd, user_hash, asset, target_deci_percent)
 
     def get_asset_tax_affinity(self, user_token):
