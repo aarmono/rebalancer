@@ -67,7 +67,8 @@ class Account:
             cost_per_share = None
             if not self.__security_db.supports_fractional_shares(symbol):
                 cost_per_share = self.__security_db.get_current_price(symbol)
-                shares = Decimal(ceil(value / cost_per_share))
+                shares = Decimal(min(ceil(value / cost_per_share),
+                                     floor(position / cost_per_share)))
                 value = shares * cost_per_share
 
             available_funds += value
@@ -117,6 +118,8 @@ class Account:
                 (shares, cost_per_share) = buy_symbols[symbol]
                 shares += (funds_per_mutual_fund / cost_per_share)
                 buy_symbols[symbol] = (shares, cost_per_share)
+                total_remaining_funds -= funds_per_mutual_fund
+                funds_per_mutual_fund = min(funds_per_mutual_fund, total_remaining_funds)
 
 
         for (symbol, (shares, cost_per_share)) in buy_symbols.items():
