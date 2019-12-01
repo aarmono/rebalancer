@@ -26,12 +26,16 @@ It was inspired by some of the concepts I learned about by lurking on the
 [Bogleheads forum](https://www.bogleheads.org/forum/index.php).
 
 The central idea behind the program is that one has an investment portfolio
-with multiple securities each comprising a fixed percentage of the portfolio.
-As money flows into the portfolio, the tool is able to calculate which securities
-to buy to maintain these percentages. This tool additionally attempts to maintain
-a target ratio of securities within a broad grouping (eg. stocks, bonds). There
-are three main concepts the tool uses to maintain a portfolio: Securities,
-Asset Classes, and Asset Groups.
+with multiple securities each comprising a portion of the portfolio. This can
+be defined as a fixed percentage, a fixed amount, or a fixed percentage of the
+remainder in the event the sum of the fixed percentages and fixed amounts are
+less than 100% of the total portfolio value. Typically the latter option is used
+in portfolios with fixed amount allocations. As money flows into the portfolio,
+the tool is able to calculate which securities to buy to maintain these
+percentages. This tool additionally attempts to maintain a target ratio of
+securities within a broad grouping (eg. stocks, bonds). There are three main
+concepts the tool uses to maintain a portfolio: Securities, Asset Classes, and
+Asset Groups.
 
 **Securities** are a stock or mutual fund/ETF share. They have a specific
 symbol with which they are traded on a public exchange.
