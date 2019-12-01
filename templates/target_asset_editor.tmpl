@@ -3,6 +3,7 @@
 from decimal import Decimal
 
 asset_targets = account_target.get_asset_targets()
+TargetTypes = account_target.TargetTypes
 %>
 
 <h1>Configure Target Positions</h1>
@@ -10,15 +11,19 @@ asset_targets = account_target.get_asset_targets()
 % for asset in assets:
 <p>
     % (target, target_type) = asset_targets.get(asset)
-    % if target is not None and (target_type == "Percent" or target_type == "Percent Remainder"):
-    %   target = (target * 100).quantize(Decimal('1.0'))
+    % if target is not None:
+    %   if target_type == TargetTypes.PERCENT or target_type == TargetTypes.PERCENT_REMAINDER:
+    %     target = (target * 100).quantize(Decimal('1.0'))
+    %   elif target_type == TargetTypes.DOLLARS:
+    %     target = target.quantize(Decimal('0'))
+    %   end
     % end
     <label for="allocation/{{asset}}">{{asset}}: </label>
     <input name="allocation/{{asset}}" type="number" step=".1" value="{{target if target is not None else ''}}">
     <select name="allocation_type/{{asset}}">
-        <option value="Percent"           {{!'selected="selected"' if target_type == "Percent" else ''}}>%</option>
-        <option value="Dollars"           {{!'selected="selected"' if target_type == "Dollars" else ''}}>$</option>
-        <option value="Percent Remainder" {{!'selected="selected"' if target_type == "Percent Remainder" else ''}}>% Remainder</option>
+        % for cur_type in TargetTypes._asdict().values():
+        <option value="{{cur_type}}" {{!'selected="selected"' if target_type == cur_type else ''}}>{{account_target.get_target_type_abbreviation(cur_type)}}</option>
+        % end
     </select>
 </p>
 

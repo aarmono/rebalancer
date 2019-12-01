@@ -4,19 +4,21 @@ BEGIN TRANSACTION;
 
 CREATE TABLE TargetTypes
 (
-    ID   INTEGER NOT NULL PRIMARY KEY,
-    Name TEXT    NOT NULL UNIQUE,
+    ID           INTEGER NOT NULL PRIMARY KEY,
+    Name         TEXT    NOT NULL UNIQUE,
+    Abbreviation VARCHAR(16) NOT NULL UNIQUE,
 
-    CHECK (LENGTH(Name) > 0)
+    CHECK (LENGTH(Name) > 0),
+    CHECK (LENGTH(Abbreviation) > 0)
 );
 
-INSERT INTO TargetTypes (Name) VALUES ("Percent");
-INSERT INTO TargetTypes (Name) VALUES ("Dollars");
+INSERT INTO TargetTypes (Name, Abbreviation) VALUES ("Percent", "%");
+INSERT INTO TargetTypes (Name, Abbreviation) VALUES ("Dollars", "$");
 -- For portfolios which use a fixed dollar target or fixed percentage targets
 -- which do not add up to 100%, this is the percent the remainder of the
 -- portfolio value after computing the target values from the fixed percentage
 -- and fixed dollar allocations
-INSERT INTO TargetTypes (Name) VALUES ("Percent Remainder");
+INSERT INTO TargetTypes (Name, Abbreviation) VALUES ("Percent Remainder", "% Remainder");
 
 CREATE TABLE Targets_V2
 (

@@ -16,6 +16,7 @@ Security = namedtuple('Security', 'symbol asset asset_group')
 AccountInfo = namedtuple('AccountInfo', 'description tax_status')
 IDEntry = namedtuple('IDEntry', 'name id')
 DefaultSecurity = namedtuple('DefaultSecurity', 'asset symbol')
+TargetType = namedtuple('TargetType', 'name abbreviation id')
 
 AssetAffinity = namedtuple('AssetAffinity', 'asset tax_group priority')
 
@@ -148,6 +149,10 @@ class Database:
 
     def get_db_version(self):
         return self.__return_one(lambda x: x[0], "PRAGMA user_version")
+
+    def get_target_types(self):
+        cmd = "SELECT Name, Abbreviation, ID from TargetTypes"
+        return self.__return_iter(TargetType._make, cmd)
 
     def get_asset_targets(self, user_token):
         user_hash = self.__get_user_hash_user_salt(user_token)

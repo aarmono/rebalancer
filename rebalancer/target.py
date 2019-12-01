@@ -3,17 +3,18 @@ from decimal import Decimal
 
 from .crypto import hash_user_token_with_salt
 from .db import Database
-from .utils import round_cents
+from .utils import round_cents, to_enum_name
 
 DEFAULT = "DEFAULT"
 
-def get_asset_targets_by_id(database, user_token):
+def get_asset_targets_by_id(database, target_types, user_token):
     ret = {}
     for (asset, target, target_type) in database.get_asset_targets(user_token):
         value = None
-        if target_type == "Percent" or target_type == "Percent Remainder":
+        if target_type == target_types.PERCENT or \
+           target_type == target_types.PERCENT_REMAINDER:
             value = (Decimal(target) / 1000).quantize(Decimal('0.001'))
-        elif target_type == "Dollars":
+        elif target_type == target_types.DOLLARS:
             value = round_cents(Decimal(target))
         else:
             raise KeyError("Invalid TargetType: %s" % (target_type))
@@ -22,10 +23,10 @@ def get_asset_targets_by_id(database, user_token):
 
     return ret
 
-def get_asset_targets(database, user_token):
-    ret = get_asset_targets_by_id(database, user_token)
+def get_asset_targets(database, target_types, user_token):
+    ret = get_asset_targets_by_id(database, target_types, user_token)
     if len(ret) == 0:
-        ret = get_asset_targets_by_id(database, DEFAULT)
+        ret = get_asset_targets_by_id(database, target_types, DEFAULT)
 
     return ret
 
@@ -73,7 +74,16 @@ class AccountTarget:
         self.__init_from_db(user_token, security_db, database)
 
     def __init_from_db(self, user_token, security_db, db):
-        asset_targets = get_asset_targets(db, user_token)
+        target_types = {}
+        self.__target_type_abbreviations = {}
+        for (name, abbreviation, _) in db.get_target_types():
+            target_types[to_enum_name(name)] = name
+            self.__target_type_abbreviations[name] = abbreviation
+
+        TargetTypesClass = namedtuple('TargetTypesClass', ' '.join(target_types.keys()))
+        self.TargetTypes = TargetTypesClass(*target_types.values())
+
+        asset_targets = get_asset_targets(db, self.TargetTypes, user_token)
         asset_tax_affinity = get_asset_tax_affinity(db, user_token)
         tax_group_asset_affinity = get_tax_group_asset_affinity(db, user_token)
 
@@ -81,6 +91,9 @@ class AccountTarget:
         self.__asset_tax_affinity = asset_tax_affinity
         self.__tax_group_asset_affinity = tax_group_asset_affinity
         self.__asset_sales_mask = get_asset_sales_mask(db, user_token)
+
+    def get_target_type_abbreviation(self, target_type):
+        return self.__target_type_abbreviations[target_type]
 
     def get_asset_targets(self):
         return self.__asset_targets.copy()
@@ -91,11 +104,11 @@ class AccountTarget:
         remainder_percentages = {}
         ret = {}
         for (asset, (target, target_type)) in self.__asset_targets.items():
-            if target_type == "Percent":
+            if target_type == self.TargetTypes.PERCENT:
                 ret[asset] = target
-            elif target_type == "Dollars":
+            elif target_type == self.TargetTypes.DOLLARS:
                 ret[asset] = target / current_value
-            elif target_type == "Percent Remainder":
+            elif target_type == self.TargetTypes.PERCENT_REMAINDER:
                 remainder_percentages[asset] = target
             else:
                 raise KeyError("Invalid TargetType: %s" % (target_type))
@@ -123,11 +136,11 @@ class AccountTarget:
         remainder_percentages = {}
         targets = {}
         for (asset, (target, target_type)) in self.__asset_targets.items():
-            if target_type == "Percent":
+            if target_type == self.TargetTypes.PERCENT:
                 targets[asset] = round_cents(target * current_value)
-            elif target_type == "Dollars":
+            elif target_type == self.TargetTypes.DOLLARS:
                 targets[asset] = target
-            elif target_type == "Percent Remainder":
+            elif target_type == self.TargetTypes.PERCENT_REMAINDER:
                 remainder_percentages[asset] = target
             else:
                 raise KeyError("Invalid TargetType: %s" % (target_type))
