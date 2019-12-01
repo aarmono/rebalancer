@@ -21,7 +21,7 @@ TargetTypes = account_target.TargetTypes
     <label for="allocation/{{asset}}">{{asset}}: </label>
     <input name="allocation/{{asset}}" type="number" step=".1" value="{{target if target is not None else ''}}">
     <select name="allocation_type/{{asset}}">
-        % for cur_type in TargetTypes._asdict().values():
+        % for cur_type in sorted(TargetTypes._asdict().values()):
         <option value="{{cur_type}}" {{!'selected="selected"' if target_type == cur_type else ''}}>{{account_target.get_target_type_abbreviation(cur_type)}}</option>
         % end
     </select>
