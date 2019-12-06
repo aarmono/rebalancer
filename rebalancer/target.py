@@ -100,14 +100,18 @@ class AccountTarget:
 
     def get_target_asset_percentages(self, portfolio):
         current_value = portfolio.current_value()
+        max_percent = Decimal(1.0)
 
         remainder_percentages = {}
         ret = {}
         for (asset, (target, target_type)) in self.__asset_targets.items():
             if target_type == self.TargetTypes.PERCENT:
-                ret[asset] = target
+                ret[asset] = min(target, max_percent)
+                max_percent -= target
             elif target_type == self.TargetTypes.DOLLARS:
-                ret[asset] = target / current_value
+                percent = min(target / current_value, max_percent)
+                ret[asset] = percent
+                max_percent -= target
             elif target_type == self.TargetTypes.PERCENT_REMAINDER:
                 remainder_percentages[asset] = target
             else:
@@ -116,7 +120,11 @@ class AccountTarget:
         if len(remainder_percentages) > 0:
             remainder_percent = Decimal(1.0) - sum(ret.values())
             for (asset, target) in remainder_percentages.items():
-                ret[asset] = target * remainder_percent
+                percent = min(target * remainder_percent, max_percent)
+                ret[asset] = percent
+                max_percent -= percent
+
+        assert sum(ret.values()) == Decimal(1.0), "Target Asset Percentages must add to 1.0"
 
         return ret
 
@@ -132,14 +140,19 @@ class AccountTarget:
 
     def get_target_asset_values(self, portfolio):
         current_value = portfolio.current_value()
+        max_amount = current_value
 
         remainder_percentages = {}
         targets = {}
         for (asset, (target, target_type)) in self.__asset_targets.items():
             if target_type == self.TargetTypes.PERCENT:
-                targets[asset] = round_cents(target * current_value)
+                amount = min(round_cents(target * current_value), max_amount)
+                targets[asset] = amount
+                max_amount -= amount
             elif target_type == self.TargetTypes.DOLLARS:
-                targets[asset] = target
+                amount = min(target, max_amount)
+                targets[asset] = amount
+                max_amount -= amount
             elif target_type == self.TargetTypes.PERCENT_REMAINDER:
                 remainder_percentages[asset] = target
             else:
@@ -148,7 +161,11 @@ class AccountTarget:
         if len(remainder_percentages) > 0:
             remainder_value = current_value - sum(targets.values())
             for (asset, target) in remainder_percentages.items():
-                targets[asset] = round_cents(target * remainder_value)
+                amount = min(round_cents(target * remainder_value), max_amount)
+                targets[asset] = amount
+                max_amount -= amount
+
+        assert sum(targets.values() == current_value), "Target Asset Values must add to current value"
 
         return targets
 
