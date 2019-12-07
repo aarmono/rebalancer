@@ -174,7 +174,18 @@ def configure_update():
 
             asset_targets.append((asset, target, target_type))
 
-        database.set_asset_targets(user_token, asset_targets)
+        percent_targets = list(filter(lambda x: x[2] == 'Percent', asset_targets))
+        sum_percents = sum(map(lambda x: x[1], percent_targets))
+
+        remainder_targets = list(filter(lambda x: x[2] == 'Percent Remainder', asset_targets))
+        sum_remainders = sum(map(lambda x: x[1], remainder_targets))
+
+        if len(percent_targets) > 0 and len(remainder_targets) == 0 and sum_percents != 1000:
+            pass
+        elif len(remainder_targets) > 0 and sum_remainders != 1000:
+            pass
+        else:
+            database.set_asset_targets(user_token, asset_targets)
 
         database.commit()
 
