@@ -9,6 +9,7 @@ from .crypto import encrypt_account_description,\
                     decrypt_account_description,\
                     get_description_key,        \
                     parallel_get_account_hashes_and_keys
+from .utils import round_cents
 
 AssetTarget = namedtuple('AssetTarget', 'asset target target_type')
 AssetTaxGroup = namedtuple('AssetTaxGroup', 'asset tax_group')
@@ -23,7 +24,8 @@ AssetAffinity = namedtuple('AssetAffinity', 'asset tax_group priority')
 
 DB_UPGRADE_FILENAMES = [
     "rebalancer_v1.sql",
-    "rebalancer_v2.sql"
+    "rebalancer_v2.sql",
+    "rebalancer_v3.sql"
 ]
 
 CURRENT_DB_VERSION = 1
@@ -324,6 +326,16 @@ class Database:
     def delete_asset_group(self, asset_group):
         cmd = "DELETE FROM AssetGroups WHERE Name == ?"
         self.__return_one(str, cmd, asset_group)
+
+    def add_quote(self, symbol, price):
+        price_cents = int(price * 100)
+        cmd = "INSERT INTO Quotes (Symbol, QuoteCents) VALUES (?, ?)"
+        self.__return_one(str, cmd, symbol, price_cents)
+
+    def get_quote(self, symbol):
+        cmd = "SELECT QuoteCents FROM Quotes WHERE Symbol == ? AND ((LENGTH(Symbol) == 5 AND QuoteTime > date('now')) OR (QuoteTime > datetime('now', '-15 minutes'))) ORDER BY QuoteTime DESC LIMIT 1";
+        cents = self.__return_one(tuple, cmd, symbol)
+        return round_cents(Decimal(cents[0]) / 100) if cents is not None else None
 
     def commit(self):
         self.__conn.commit()

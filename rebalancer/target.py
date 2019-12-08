@@ -87,6 +87,8 @@ class AccountTarget:
         asset_tax_affinity = get_asset_tax_affinity(db, user_token)
         tax_group_asset_affinity = get_tax_group_asset_affinity(db, user_token)
 
+        security_db.ensure_have_current_prices(asset_targets.keys(), db)
+
         self.__asset_targets = asset_targets
         self.__asset_tax_affinity = asset_tax_affinity
         self.__tax_group_asset_affinity = tax_group_asset_affinity

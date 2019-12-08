@@ -47,8 +47,24 @@ class SecurityDatabase:
     def get_asset_group_for_asset(self, asset):
         return self.__asset_groups[asset]
 
-    def set_current_price(self, symbol, value):
-        self.__current_prices[symbol] = value
+    def ensure_have_current_prices(self, assets, db):
+        assets_with_prices = set()
+        for symbol in self.__current_prices.keys():
+            if symbol in self.__asset_classes:
+                assets_with_prices.add(self.__asset_classes[symbol])
+
+        for asset in assets:
+            if asset != self.Assets.CASH and asset not in assets_with_prices:
+                symbol = self.get_reference_security(asset)
+                db_price = db.get_quote(symbol)
+                if db_price is None:
+                    current_price = get_current_price_from_web(symbol, self.__quote_key)
+                    db.add_quote(symbol, current_price)
+                    self.__current_prices[symbol] = current_price
+                else:
+                    self.__current_prices[symbol] = db_price
+
+        db.commit()
 
     def get_current_price(self, symbol):
         if self.get_asset_class(symbol) == self.Assets.CASH:
