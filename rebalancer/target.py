@@ -130,7 +130,7 @@ class AccountTarget:
 
         assert sum(ret.values()) == Decimal(1.0), "Target Asset Percentages must add to 1.0"
 
-        return dict(ret.items())
+        return ret
 
     def get_target_asset_group_percentages(self, portfolio):
         target_asset_percentages = self.get_target_asset_percentages(portfolio)
@@ -140,7 +140,7 @@ class AccountTarget:
             asset_group = self.__security_db.get_asset_group_for_asset(asset)
             ret[asset_group] += percent
 
-        return dict(ret.items())
+        return ret
 
     def get_target_asset_values(self, portfolio):
         current_value = portfolio.current_value()
@@ -173,7 +173,7 @@ class AccountTarget:
 
         assert sum(targets.values()) == current_value, "Target Asset Values must add to current value"
 
-        return dict(targets.items())
+        return targets
 
     def get_target_asset_group_values(self, portfolio):
         targets = defaultdict(Decimal)
@@ -185,7 +185,7 @@ class AccountTarget:
             asset_group = self.__security_db.get_asset_group_for_asset(asset)
             targets[asset_group] += target
 
-        return dict(targets.items())
+        return targets
 
     def get_actual_asset_group_values(self, portfolio):
         targets = defaultdict(Decimal)
