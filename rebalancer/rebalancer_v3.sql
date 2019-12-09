@@ -14,6 +14,20 @@ CREATE TABLE Quotes
     CONSTRAINT SymbolUniqueByTime PRIMARY KEY (Symbol, QuoteTime)
 ) WITHOUT ROWID;
 
+CREATE TRIGGER DeleteOldQuotes
+AFTER
+    INSERT
+ON
+    Quotes
+FOR EACH ROW
+BEGIN
+    DELETE FROM
+        Quotes
+    WHERE
+        Symbol == NEW.Symbol AND
+        QuoteTime < date('now', '-1 day')
+    ;
+END;
 
 PRAGMA user_version=3;
 
