@@ -113,34 +113,52 @@ def configure_update():
     asset_target_values = {}
     asset_target_types = {}
     asset_sales_mask = set()
+    asset_target_delete = set()
+
+    def split_key(key):
+        val = key.split('/')
+        if len(val) == 2:
+            return tuple(val)
+        else:
+            return (key, None)
 
     with Database() as database:
         asset_ids = dict(database.get_asset_abbreviations())
 
+        asset_target_delete.update(set(request.forms.getall("delete_allocation")))
+
         for (key, value) in request.forms.items():
             try:
-                (section, subelement) = tuple(key.split('/'))
+                (section, subelement) = split_key(key)
                 if section == "accounts":
                     (account, account_key) = tuple(subelement.split('|'))
                     account_info[account][account_key] = value
                 elif section == "affinity":
                     (tax_group, asset) = tuple(subelement.split('|'))
-                    if value != "DISABLE":
+                    if value != "DISABLE" and asset not in asset_target_delete:
                         val = AssetAffinity(asset,
                                             tax_group,
                                             int(value))
                         affinities.append(val)
                 elif section == "mask":
                     (tax_group, asset) = tuple(subelement.split('|'))
-                    asset_sales_mask.add(AssetTaxGroup(asset, tax_group))
+                    if asset not in asset_target_delete:
+                        asset_sales_mask.add(AssetTaxGroup(asset, tax_group))
                 elif section == "allocation":
-                    asset_set.add(subelement)
+                    if subelement not in asset_target_delete:
+                        asset_set.add(subelement)
 
-                    asset_target_values[subelement] = Decimal(value)
+                        asset_target_values[subelement] = Decimal(value)
                 elif section == "allocation_type":
-                    asset_set.add(subelement)
+                    if subelement not in asset_target_delete:
+                        asset_set.add(subelement)
 
-                    asset_target_types[subelement] = value
+                        asset_target_types[subelement] = value
+                elif section == "new_allocation":
+                    if len(value) > 0:
+                        asset_set.add(value)
+                        asset_target_types[value] = 'Percent'
+                        asset_target_values[value] = "0"
             except Exception as ex:
                 print(ex)
                 pass
