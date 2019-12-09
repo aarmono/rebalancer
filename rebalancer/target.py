@@ -105,7 +105,7 @@ class AccountTarget:
         max_percent = Decimal(1.0)
 
         remainder_percentages = {}
-        ret = {}
+        ret = defaultdict(Decimal)
         for (asset, (target, target_type)) in self.__asset_targets.items():
             if target_type == self.TargetTypes.PERCENT:
                 ret[asset] = min(target, max_percent)
@@ -113,22 +113,24 @@ class AccountTarget:
             elif target_type == self.TargetTypes.DOLLARS:
                 percent = min(target / current_value, max_percent)
                 ret[asset] = percent
-                max_percent -= target
+                max_percent -= percent
             elif target_type == self.TargetTypes.PERCENT_REMAINDER:
                 remainder_percentages[asset] = target
             else:
                 raise KeyError("Invalid TargetType: %s" % (target_type))
 
-        if len(remainder_percentages) > 0:
-            remainder_percent = Decimal(1.0) - sum(ret.values())
+        remainder_percent = Decimal(1.0) - sum(ret.values())
+        while remainder_percent > Decimal(0.0) and len(remainder_percentages) > 0:
             for (asset, target) in remainder_percentages.items():
                 percent = min(target * remainder_percent, max_percent)
-                ret[asset] = percent
+                ret[asset] += percent
                 max_percent -= percent
+
+            remainder_percent = Decimal(1.0) - sum(ret.values())
 
         assert sum(ret.values()) == Decimal(1.0), "Target Asset Percentages must add to 1.0"
 
-        return ret
+        return dict(ret.items())
 
     def get_target_asset_group_percentages(self, portfolio):
         target_asset_percentages = self.get_target_asset_percentages(portfolio)
@@ -145,7 +147,7 @@ class AccountTarget:
         max_amount = current_value
 
         remainder_percentages = {}
-        targets = {}
+        targets = defaultdict(Decimal)
         for (asset, (target, target_type)) in self.__asset_targets.items():
             if target_type == self.TargetTypes.PERCENT:
                 amount = min(round_cents(target * current_value), max_amount)
@@ -160,23 +162,25 @@ class AccountTarget:
             else:
                 raise KeyError("Invalid TargetType: %s" % (target_type))
 
-        if len(remainder_percentages) > 0:
-            remainder_value = current_value - sum(targets.values())
+        remainder_value = current_value - round_cents(sum(targets.values()))
+        while remainder_value > Decimal(0) and len(remainder_percentages) > 0:
             for (asset, target) in remainder_percentages.items():
                 amount = min(round_cents(target * remainder_value), max_amount)
-                targets[asset] = amount
+                targets[asset] += amount
                 max_amount -= amount
 
-        assert sum(targets.values() == current_value), "Target Asset Values must add to current value"
+            remainder_value = current_value - round_cents(sum(targets.values()))
 
-        return targets
+        assert sum(targets.values()) == current_value, "Target Asset Values must add to current value"
+
+        return dict(targets.items())
 
     def get_target_asset_group_values(self, portfolio):
         targets = defaultdict(Decimal)
         target_asset_values = self.get_target_asset_values(portfolio)
 
         total_value = portfolio.current_value()
-        for (asset, value) in portfolio.items():
+        for (asset, _) in self.__asset_targets.items():
             target = target_asset_values[asset]
             asset_group = self.__security_db.get_asset_group_for_asset(asset)
             targets[asset_group] += target
