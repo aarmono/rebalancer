@@ -22,6 +22,7 @@ table, th, td {
 <%
 asset_ids = dict(database.get_asset_abbreviations())
 securities = session.get_securities_db()
+account_target = session.get_account_target()
 unsorted_assets = set()
 
 for entry in session.get_account_entries():
@@ -33,7 +34,8 @@ for entry in session.get_account_entries():
     end
 end
 
-account_target = session.get_account_target()
+unsorted_assets.update(account_target.get_asset_targets().keys())
+
 assets = sorted(unsorted_assets, key=lambda x: asset_ids[x])
 asset_sales_mask = account_target.get_asset_sales_mask()
 %>
