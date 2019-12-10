@@ -21,13 +21,11 @@ unassigned_assets = sorted(set(map(lambda x: x[0], database.get_asset_abbreviati
 % for asset in assets:
     <tr>
         <%
-        (target, target_type) = asset_targets.get(asset)
-        if target is not None:
-            if target_type == TargetTypes.PERCENT or target_type == TargetTypes.PERCENT_REMAINDER:
-                target = (target * 100).quantize(Decimal('1.0'))
-            elif target_type == TargetTypes.DOLLARS:
-                target = target.quantize(Decimal('0'))
-            end
+        (target, target_type) = asset_targets.get(asset, (Decimal(0.0), TargetTypes.PERCENT))
+        if target_type == TargetTypes.PERCENT or target_type == TargetTypes.PERCENT_REMAINDER:
+            target = (target * 100).quantize(Decimal('1.0'))
+        elif target_type == TargetTypes.DOLLARS:
+            target = target.quantize(Decimal('0'))
         end
         %>
 
