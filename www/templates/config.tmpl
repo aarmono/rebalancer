@@ -40,9 +40,9 @@ assets = sorted(unsorted_assets, key=lambda x: asset_ids[x])
 asset_sales_mask = account_target.get_asset_sales_mask()
 %>
 
-% include('templates/account_config_editor.tmpl', account_entries = session.get_account_entries(), database = database)
-% include('templates/target_asset_editor.tmpl', account_target = session.get_account_target(), assets = assets, database = database)
-% include('templates/asset_editor.tmpl', account_target = session.get_account_target(), database = database)
+% include('www/templates/account_config_editor.tmpl', account_entries = session.get_account_entries(), database = database)
+% include('www/templates/target_asset_editor.tmpl', account_target = session.get_account_target(), assets = assets, database = database)
+% include('www/templates/asset_editor.tmpl', account_target = session.get_account_target(), database = database)
 
 <input type="submit" value="Update Config" />
 </form>

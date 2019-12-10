@@ -11,11 +11,11 @@ QUOTE_KEY = None
 
 @route('/')
 def index():
-    return template('templates/index.tmpl')
+    return template('www/templates/index.tmpl')
 
 @route('/js/<filename:path>')
 def send_static(filename):
-    return static_file(filename, root='js')
+    return static_file(filename, root='www/js')
 
 @route('/get_token')
 def get_token():
@@ -60,7 +60,7 @@ def rebalance():
             database.commit()
 
             session = Session(token, database, upload.file)
-            return template('templates/config.tmpl',
+            return template('www/templates/config.tmpl',
                             user_token = token,
                             session = session,
                             database = database)
@@ -72,7 +72,7 @@ def rebalance():
                               taxable_credit,
                               tax_deferred_credit,
                               QUOTE_KEY)
-            return template('templates/rebalance.tmpl',
+            return template('www/templates/rebalance.tmpl',
                             user_token = token,
                             session = session,
                             show_dollar_values = show_dollar_values,
@@ -98,7 +98,7 @@ def configure_show():
 
         session = Session(user_token, database, upload.file)
 
-        return template('templates/config.tmpl',
+        return template('www/templates/config.tmpl',
                         user_token = user_token,
                         session = session,
                         database = database)
@@ -210,7 +210,7 @@ def configure_update():
         assets = sorted(asset_set, key=lambda x: asset_ids[x])
         session = Session(user_token, database)
 
-        return template('templates/config_simple.tmpl',
+        return template('www/templates/config_simple.tmpl',
                         user_token = user_token,
                         accounts = list(account_info.keys()),
                         account_target = session.get_account_target(),
@@ -221,7 +221,7 @@ def configure_update():
 @route('/security_configure')
 def security_configure():
     with Database() as database:
-        return template('templates/security_config.tmpl', database = database)
+        return template('www/templates/security_config.tmpl', database = database)
 
 @route('/security_configure/update', method='POST')
 def security_configure_update():
@@ -261,7 +261,7 @@ def security_configure_update():
 
         database.commit()
 
-        return template('templates/security_config.tmpl', database = database)
+        return template('www/templates/security_config.tmpl', database = database)
 
 
 def main():

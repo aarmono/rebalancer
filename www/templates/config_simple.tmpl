@@ -19,9 +19,9 @@ table, th, td {
 
 <input type="hidden" name="user_token" value="{{user_token}}" />
 
-% include('templates/account_config_simple_editor.tmpl', accounts = accounts, database = database)
-% include('templates/target_asset_editor.tmpl', account_target = account_target, assets = assets, database = database)
-% include('templates/asset_editor.tmpl', account_target = account_target, database = database)
+% include('www/templates/account_config_simple_editor.tmpl', accounts = accounts, database = database)
+% include('www/templates/target_asset_editor.tmpl', account_target = account_target, assets = assets, database = database)
+% include('www/templates/asset_editor.tmpl', account_target = account_target, database = database)
 
 <input type="submit" value="Update Config" />
 </form>
