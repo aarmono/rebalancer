@@ -27,7 +27,7 @@
   </tr>
 <%
 total_value = portfolio.current_value()
-for (symbol, value) in portfolio.items():
+for (symbol, value) in sorted(portfolio.items(), key=lambda x: x[1], reverse=True):
     actual_percent = ((value / total_value) * 100).quantize(Decimal('1.0'))
 
     target_percent = None
@@ -37,20 +37,20 @@ for (symbol, value) in portfolio.items():
         point_difference = actual_percent - target_percent
     end
 %>
-  <tr>
-    <td>{{symbol}}</td>
-    <td>{{actual_percent}}%</td>
-% if show_dollar_values:
-    <td>{{to_dollars(value)}}
-% end
-% if target_percentages is not None:
-    <td>{{target_percent}}%</td>
-% if show_dollar_values:
-    <td>{{to_dollars(total_value * target_percentages[symbol])}}</td>
-% end
-    <td>{{point_difference}}%</td>
-% end
-  </tr>
+    <tr>
+        <td>{{symbol}}</td>
+        <td>{{actual_percent}}%</td>
+    % if show_dollar_values:
+        <td>{{to_dollars(value)}}
+    % end
+    % if target_percentages is not None:
+        <td>{{target_percent}}%</td>
+        % if show_dollar_values:
+        <td>{{to_dollars(total_value * target_percentages[symbol])}}</td>
+        % end
+        <td>{{point_difference}}%</td>
+    % end
+    </tr>
 % end
 </table>
 
@@ -76,7 +76,7 @@ if target_percentages is not None:
     group_percentages = account_target.get_target_asset_group_percentages(portfolio)
 end
 
-for (group, actual_value) in group_actual_values.items():
+for (group, actual_value) in sorted(group_actual_values.items(), key=lambda x: x[1], reverse=True):
     group_target_percent = None
     target_value = None
     if target_percentages is not None:
