@@ -1,5 +1,5 @@
 
-% from rebalance import to_dollars
+% from rebalancer import to_dollars
 
 % show_pie_chart = getattr(portfolio, 'assets_by_tax_status', None) is not None
 
@@ -68,7 +68,7 @@ for (symbol, value) in portfolio.items():
 % end
   </tr>
 <%
-group_actual_values = account_target.get_actual_asset_group_values(portfolio)
+group_actual_values = portfolio.assets_by_asset_group()
 group_target_values = None
 group_percentages = None
 if target_percentages is not None:

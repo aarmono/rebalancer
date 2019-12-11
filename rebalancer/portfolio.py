@@ -188,8 +188,9 @@ class Account:
         return account_copy
 
 class AccountGroupBase:
-    def __init__(self, accounts):
+    def __init__(self, accounts, security_db):
         self._accounts = accounts
+        self._security_db = security_db
 
     def current_value(self):
         return reduce(lambda x, y: x + y.current_value(),
@@ -221,6 +222,15 @@ class AccountGroupBase:
 
         return list(ret.items())
 
+    def assets_by_asset_group(self):
+        targets = defaultdict(Decimal)
+
+        for (asset, value) in self.items():
+            asset_group = self._security_db.get_asset_group_for_asset(asset)
+            targets[asset_group] += value
+
+        return dict(targets.items())
+
     def keys(self):
         ret = set()
         for account in self._accounts.values():
@@ -230,8 +240,7 @@ class AccountGroupBase:
 
 class AccountGroup(AccountGroupBase):
     def __init__(self, security_db):
-        self.__security_db = security_db
-        AccountGroupBase.__init__(self, defaultdict(partial(Account, security_db)))
+        AccountGroupBase.__init__(self, defaultdict(partial(Account, security_db)), security_db)
 
     def add_position(self, account, symbol, value):
         self._accounts[account].add_position(symbol, value)
@@ -280,7 +289,7 @@ class AccountGroup(AccountGroupBase):
         return ret
 
     def copy(self, transaction_group):
-        account_group_copy = AccountGroup(self.__security_db)
+        account_group_copy = AccountGroup(self._security_db)
 
         for (account, transactions) in transaction_group.items():
             account_group_copy._accounts[account] = self._accounts[account].copy(transactions)
@@ -289,8 +298,7 @@ class AccountGroup(AccountGroupBase):
 
 class Portfolio(AccountGroupBase):
     def __init__(self, security_db, tax_status):
-        AccountGroupBase.__init__(self, defaultdict(partial(AccountGroup, security_db)))
-        self.__security_db = security_db
+        AccountGroupBase.__init__(self, defaultdict(partial(AccountGroup, security_db)), security_db)
         self.TaxStatus = tax_status
 
     def add_position(self, account, tax_status, symbol, position):
@@ -308,7 +316,7 @@ class Portfolio(AccountGroupBase):
         return ret
 
     def copy_with_transactions_applied(self, transaction_groups):
-        portfolio_copy = Portfolio(self.__security_db, self.TaxStatus)
+        portfolio_copy = Portfolio(self._security_db, self.TaxStatus)
 
         for (tax_status, transaction_group) in transaction_groups.items():
             portfolio_copy._accounts[tax_status] = self._accounts[tax_status].copy(transaction_group)

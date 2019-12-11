@@ -47,7 +47,7 @@ class Rebalancer:
         target_asset_percentages = None
 
         if rebalance_mode == RebalanceMode.RESHUFFLE:
-            target_asset_group_values = self.__account_target.get_actual_asset_group_values(portfolio)
+            target_asset_group_values = portfolio.assets_by_asset_group()
             target_asset_values = dict(portfolio.items())
             target_asset_percentages = get_actual_asset_percentages(portfolio)
         else:

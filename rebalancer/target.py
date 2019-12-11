@@ -187,15 +187,6 @@ class AccountTarget:
 
         return targets
 
-    def get_actual_asset_group_values(self, portfolio):
-        targets = defaultdict(Decimal)
-
-        for (asset, value) in portfolio.items():
-            asset_group = self.__security_db.get_asset_group_for_asset(asset)
-            targets[asset_group] += value
-
-        return dict(targets.items())
-
     def get_asset_tax_affinity(self, asset):
         return self.__asset_tax_affinity[asset].copy()
 
