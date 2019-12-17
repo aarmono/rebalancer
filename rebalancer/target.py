@@ -102,31 +102,28 @@ class AccountTarget:
 
     def get_target_asset_percentages(self, portfolio):
         current_value = portfolio.current_value()
-        max_percent = Decimal(1.0)
+        ret = defaultdict(Decimal)
+        max_percent = lambda: Decimal(1.0) - sum(ret.values(), Decimal(0.0))
 
         remainder_percentages = {}
-        ret = defaultdict(Decimal)
         for (asset, (target, target_type)) in self.__asset_targets.items():
             if target_type == self.TargetTypes.PERCENT:
-                ret[asset] = min(target, max_percent)
-                max_percent -= target
+                ret[asset] = min(target, max_percent())
             elif target_type == self.TargetTypes.DOLLARS:
-                percent = min(target / current_value, max_percent)
+                percent = min(target / current_value, max_percent())
                 ret[asset] = percent
-                max_percent -= percent
             elif target_type == self.TargetTypes.PERCENT_REMAINDER:
                 remainder_percentages[asset] = target
             else:
                 raise KeyError("Invalid TargetType: %s" % (target_type))
 
-        remainder_percent = Decimal(1.0) - sum(ret.values())
+        remainder_percent = max_percent()
         while remainder_percent > Decimal(0.0) and len(remainder_percentages) > 0:
             for (asset, target) in remainder_percentages.items():
-                percent = min(target * remainder_percent, max_percent)
+                percent = min(target * remainder_percent, max_percent())
                 ret[asset] += percent
-                max_percent -= percent
 
-            remainder_percent = Decimal(1.0) - sum(ret.values())
+            remainder_percent = max_percent()
 
         assert sum(ret.values()) == Decimal(1.0), "Target Asset Percentages must add to 1.0"
 
@@ -144,32 +141,29 @@ class AccountTarget:
 
     def get_target_asset_values(self, portfolio):
         current_value = portfolio.current_value()
-        max_amount = current_value
+        targets = defaultdict(Decimal)
+        max_amount = lambda: current_value - round_cents(sum(targets.values(), Decimal(0.0)))
 
         remainder_percentages = {}
-        targets = defaultdict(Decimal)
         for (asset, (target, target_type)) in self.__asset_targets.items():
             if target_type == self.TargetTypes.PERCENT:
-                amount = min(round_cents(target * current_value), max_amount)
+                amount = min(round_cents(target * current_value), max_amount())
                 targets[asset] = amount
-                max_amount -= amount
             elif target_type == self.TargetTypes.DOLLARS:
-                amount = min(target, max_amount)
+                amount = min(target, max_amount())
                 targets[asset] = amount
-                max_amount -= amount
             elif target_type == self.TargetTypes.PERCENT_REMAINDER:
                 remainder_percentages[asset] = target
             else:
                 raise KeyError("Invalid TargetType: %s" % (target_type))
 
-        remainder_value = current_value - round_cents(sum(targets.values()))
+        remainder_value = max_amount()
         while remainder_value > Decimal(0) and len(remainder_percentages) > 0:
             for (asset, target) in remainder_percentages.items():
-                amount = min(round_cents(target * remainder_value), max_amount)
+                amount = min(round_cents(target * remainder_value), max_amount())
                 targets[asset] += amount
-                max_amount -= amount
 
-            remainder_value = current_value - round_cents(sum(targets.values()))
+            remainder_value = max_amount()
 
         assert sum(targets.values()) == current_value, "Target Asset Values must add to current value"
 
