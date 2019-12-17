@@ -142,7 +142,8 @@ class AccountTarget:
     def get_target_asset_values(self, portfolio):
         current_value = portfolio.current_value()
         targets = defaultdict(Decimal)
-        max_amount = lambda: current_value - round_cents(sum(targets.values(), Decimal(0.0)))
+        max_amount = lambda: current_value - round_cents(sum(targets.values(),
+                                                             Decimal(0.0)))
 
         remainder_percentages = {}
         for (asset, (target, target_type)) in self.__asset_targets.items():
