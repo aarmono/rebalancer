@@ -161,7 +161,8 @@ class AccountTarget:
         remainder_value = max_amount()
         while remainder_value > Decimal(0) and len(remainder_percentages) > 0:
             for (asset, target) in remainder_percentages.items():
-                amount = min(round_cents(target * remainder_value), max_amount())
+                computed_amount = max(Decimal(.01), round_cents(target * remainder_value))
+                amount = min(computed_amount, max_amount())
                 targets[asset] += amount
 
             remainder_value = max_amount()
