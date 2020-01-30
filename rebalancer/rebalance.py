@@ -124,9 +124,27 @@ class Rebalancer:
                 else:
                     del affinities_by_tax_status[tax_status]
 
-        #If there is leftover cash within a tax group, allocate it based on the
-        # target asset percentages normalized for the total percentage of the
-        # assets which have affinity for that group
+        #If there is leftover cash within a tax group, first allocate it if
+        #there is an asset below its target allcoation
+        for tax_status in portfolio.assets_by_tax_status().keys():
+            tax_status_amount = tax_status_amounts[tax_status]
+            if tax_status_amount > Decimal(0.0):
+                assets = self.__account_target.get_tax_group_asset_affinity(tax_status)
+
+                # Add to each asset with affinity
+                for asset in assets:
+                    to_add = min(tax_status_amounts[tax_status],
+                                 target_asset_values[asset])
+
+                    targets[tax_status][asset] += to_add
+
+                    tax_status_amounts[tax_status] -= to_add
+                    if tax_status_amounts[tax_status] <= Decimal(0.0):
+                        break
+
+        #If there is still leftover cash within a tax group, allocate it based
+        #on the target asset percentages normalized for the total percentage of
+        #the assets which have affinity for that group
         for tax_status in portfolio.assets_by_tax_status().keys():
             tax_status_amount = tax_status_amounts[tax_status]
             if tax_status_amount > Decimal(0.0):
