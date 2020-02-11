@@ -21,8 +21,9 @@ def get_current_price_from_web(symbol, service_key):
         return round_cents(Decimal(j['Global Quote']['05. price']))
 
 class SecurityDatabase:
-    def __init__(self, account_entries = None, database = None, quote_key = None):
+    def __init__(self, account_entries = None, database = None, quote_key = None, partial_share_trades = False):
         self.__quote_key = quote_key
+        self.__partial_share_trades = partial_share_trades
 
         if account_entries is not None:
             self.__current_prices = dict([(entry.symbol, entry.share_price) for entry in account_entries])
@@ -79,7 +80,7 @@ class SecurityDatabase:
         return self.__current_prices.get(symbol, Decimal(10.00))
 
     def supports_fractional_shares(self, symbol):
-        return is_mutual_fund(symbol) or \
+        return is_mutual_fund(symbol) or self.__partial_share_trades or \
                self.get_asset_group(symbol) == self.AssetGroups.CASH
 
     def get_reference_security(self, asset):

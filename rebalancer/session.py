@@ -30,12 +30,13 @@ class Session:
                  filename = None,
                  taxable_credit = None,
                  tax_deferred_credit = None,
-                 quote_key = None):
+                 quote_key = None,
+                 fractional_shares = False):
         self.__user_token = user_token
         self.__account_info = {}
 
         self.__account_entries = None if filename is None else parse_file(filename)
-        self.__securities_db = SecurityDatabase(self.__account_entries, db, quote_key)
+        self.__securities_db = SecurityDatabase(self.__account_entries, db, quote_key, fractional_shares)
         self.__account_target = AccountTarget(user_token, self.__securities_db, db)
         self.__rebalancer = Rebalancer(self.__securities_db, self.__account_target)
 

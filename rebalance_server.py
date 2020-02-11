@@ -27,6 +27,7 @@ def rebalance():
     upload                 = request.files.get('upload')
     rebalance_mode_str     = request.forms.get('rebalance_mode')
     show_dollar_values_str = request.forms.get('show_dollar_values')
+    fractional_shares_str  = request.forms.get('trade_fractional_shares')
 
     if upload is None:
         return "Must provide a portfolio csv file"
@@ -52,6 +53,7 @@ def rebalance():
     rebalance_mode = rebalance_dict.get(rebalance_mode_str, RebalanceMode.SELL_ALL)
 
     show_dollar_values = show_dollar_values_str == "true"
+    fractional_shares = fractional_shares_str == "true"
 
     with Database() as database:
         salt = database.get_user_salt(token)
@@ -71,7 +73,8 @@ def rebalance():
                               upload.file,
                               taxable_credit,
                               tax_deferred_credit,
-                              QUOTE_KEY)
+                              QUOTE_KEY,
+                              fractional_shares)
             return template('www/templates/rebalance.tmpl',
                             user_token = token,
                             session = session,
