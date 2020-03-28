@@ -23,6 +23,7 @@
     <th>Target Amount</th>
 % end
     <th>Percentage Point Difference</th>
+    <th>Percent Difference</th>
 % end
   </tr>
 <%
@@ -35,6 +36,11 @@ for (symbol, value) in sorted(portfolio.items(), key=lambda x: x[1], reverse=Tru
     if target_percentages is not None:
         target_percent = (target_percentages[symbol] * 100).quantize(Decimal('1.0'))
         point_difference = actual_percent - target_percent
+        if target_percent > Decimal(0.0):
+            percent_difference = ((point_difference / target_percent) * 100).quantize(Decimal('1.0'))
+        else:
+            percent_difference = None
+        end
     end
 %>
     <tr>
@@ -49,6 +55,11 @@ for (symbol, value) in sorted(portfolio.items(), key=lambda x: x[1], reverse=Tru
         <td>{{to_dollars(total_value * target_percentages[symbol])}}</td>
         % end
         <td>{{point_difference}}%</td>
+        % if percent_difference is not None:
+        <td>{{percent_difference}}%</td>
+        % else:
+        <td></td>
+        % end
     % end
     </tr>
 % end
