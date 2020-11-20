@@ -8,9 +8,12 @@ from .utils import is_sweep
 def parse_dollar_column(val):
     return Decimal(val.replace(',', '').replace('$', ''))
 
+def parse_number_column(val):
+    return Decimal(val.replace(',', ''))
+
 def parse_file(file):
     if hasattr(file, 'read'):
-        with TextIOWrapper(file, encoding='utf-8') as f:
+        with TextIOWrapper(file, encoding='utf-8-sig') as f:
             return parse_file_object(f)
     else:
         with open(file, "r") as f:
@@ -25,11 +28,16 @@ def parse_file_object(file):
         symbol = row["Symbol"]
         account = row["Account Name/Number"]
         description = row["Description"]
-        if len(symbol) > 0:
+        # If there is no symbol (which happens with some 401(k) funds), try
+        # to use the description as the symbol
+        if symbol is None or len(symbol) == 0:
+            symbol = description
+
+        if symbol is not None and len(symbol) > 0:
             sweep = is_sweep(symbol)
             symbol = symbol.replace('*', '')
 
-            shares = Decimal(row["Quantity"])
+            shares = parse_number_column(row["Quantity"])
             cost_per_share = Decimal(1.0) if sweep else parse_dollar_column(row["Last Price"])
             current_value = None
             current_value = parse_dollar_column(row["Current Value"])
