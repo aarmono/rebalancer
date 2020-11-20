@@ -6,10 +6,7 @@ from io import TextIOWrapper
 from .utils import is_sweep
 
 def parse_dollar_column(val):
-    if val[0] == '$':
-        return Decimal(val[1:])
-    else:
-        return Decimal(val)
+    return Decimal(val.replace(',', '').replace('$', ''))
 
 def parse_file(file):
     if hasattr(file, 'read'):
