@@ -16,7 +16,7 @@ def parse_file(file):
         with TextIOWrapper(file, encoding='utf-8-sig') as f:
             return parse_file_object(f)
     else:
-        with open(file, "r") as f:
+        with open(file, "r", encoding='utf-8-sig') as f:
             return parse_file_object(f)
 
 def parse_file_object(file):
