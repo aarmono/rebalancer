@@ -24,7 +24,7 @@ def parse_file(file):
 
 def parse_file_object(file):
     AccountEntry = namedtuple('AccountEntry',
-                              'account_name symbol share_price current_value is_sweep description shares')
+                              'account_name symbol share_price current_value is_sweep description shares is_credit')
     ret = []
     r = DictReader(file)
     for row in r:
@@ -38,6 +38,7 @@ def parse_file_object(file):
 
         if symbol is not None and len(symbol) > 0:
             sweep = is_sweep(symbol)
+            credit = symbol == "Pending Activity"
             symbol = symbol.replace('*', '')
 
             unity = Decimal(1.0)
@@ -52,7 +53,8 @@ def parse_file_object(file):
                                  current_value,
                                  sweep,
                                  description,
-                                 shares)
+                                 shares,
+                                 credit)
 
             ret.append(entry)
 

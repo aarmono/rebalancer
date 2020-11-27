@@ -54,7 +54,8 @@ class Session:
             credits = self.__get_credit_dict(TaxStatus, db, taxable_credit, tax_deferred_credit)
 
             for account_entry in self.__account_entries:
-                if self.__securities_db.contains_symbol(account_entry.symbol):
+                if not account_entry.is_credit and \
+                   self.__securities_db.contains_symbol(account_entry.symbol):
                     info = self.__get_account_info(db, account_entry.account_name)
                     if info is not None:
                         current_value = account_entry.current_value
@@ -98,7 +99,7 @@ class Session:
             credits[TaxStatus.TAX_DEFERRED] = tax_deferred_credit
 
         for account_entry in self.__account_entries:
-            if account_entry.symbol == "Pending Activity":
+            if account_entry.is_credit:
                 info = self.__get_account_info(database, account_entry.account_name)
                 if info is not None:
                     credits[info.tax_status] += account_entry.current_value
