@@ -51,6 +51,8 @@ class Session:
             TaxStatus = create_tax_status(db)
             self.__portfolio = Portfolio(self.__securities_db, TaxStatus)
 
+            credits = self.__get_credit_dict(TaxStatus, db, taxable_credit, tax_deferred_credit)
+
             for account_entry in self.__account_entries:
                 if self.__securities_db.contains_symbol(account_entry.symbol):
                     info = self.__get_account_info(db, account_entry.account_name)
@@ -59,12 +61,7 @@ class Session:
                         description = info.description if info.description is not None else account_entry.account_name
 
                         if account_entry.is_sweep:
-                            if taxable_credit is not None and \
-                               info.tax_status == TaxStatus.TAXABLE:
-                                current_value += taxable_credit
-                            elif tax_deferred_credit is not None and \
-                                 info.tax_status == TaxStatus.TAX_DEFERRED:
-                                current_value += tax_deferred_credit
+                            current_value += credits[info.tax_status]
 
                         self.__portfolio.add_position(description,
                                                       info.tax_status,
@@ -92,3 +89,18 @@ class Session:
             self.__account_info[account_name] = info
 
         return self.__account_info[account_name]
+
+    def __get_credit_dict(self, TaxStatus, database, taxable_credit, tax_deferred_credit):
+        credits = defaultdict(Decimal)
+        if taxable_credit is not None:
+            credits[TaxStatus.TAXABLE] = taxable_credit
+        if tax_deferred_credit is not None:
+            credits[TaxStatus.TAX_DEFERRED] = tax_deferred_credit
+
+        for account_entry in self.__account_entries:
+            if account_entry.symbol == "Pending Activity":
+                info = self.__get_account_info(database, account_entry.account_name)
+                if info is not None:
+                    credits[info.tax_status] += account_entry.current_value
+
+        return credits

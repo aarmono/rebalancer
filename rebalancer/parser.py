@@ -5,11 +5,14 @@ from io import TextIOWrapper
 
 from .utils import is_sweep
 
-def parse_dollar_column(val):
-    return Decimal(val.replace(',', '').replace('$', ''))
+def parse_dollar_column(val, default=None):
+    if default is None:
+        return Decimal(val.replace(',', '').replace('$', ''))
+    else:
+        return default if val is None or len(val) == 0 else parse_dollar_column(val)
 
-def parse_number_column(val):
-    return Decimal(val.replace(',', ''))
+def parse_number_column(val, default):
+    return default if val is None or len(val) == 0 else Decimal(val.replace(',', ''))
 
 def parse_file(file):
     if hasattr(file, 'read'):
@@ -37,10 +40,11 @@ def parse_file_object(file):
             sweep = is_sweep(symbol)
             symbol = symbol.replace('*', '')
 
-            shares = parse_number_column(row["Quantity"])
-            cost_per_share = Decimal(1.0) if sweep else parse_dollar_column(row["Last Price"])
-            current_value = None
+            unity = Decimal(1.0)
+
             current_value = parse_dollar_column(row["Current Value"])
+            shares = parse_number_column(row["Quantity"], current_value)
+            cost_per_share = unity if sweep else parse_dollar_column(row["Last Price"], unity)
 
             entry = AccountEntry(account,
                                  symbol,
