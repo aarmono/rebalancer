@@ -61,8 +61,9 @@ class Session:
                         current_value = account_entry.current_value
                         description = info.description if info.description is not None else account_entry.account_name
 
-                        if account_entry.is_sweep:
+                        if account_entry.is_sweep and info.is_default:
                             current_value += credits[info.tax_status]
+                            credits[info.tax_status] = Decimal(0.0)
 
                         self.__portfolio.add_position(description,
                                                       info.tax_status,

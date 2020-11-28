@@ -117,6 +117,7 @@ def configure_update():
     asset_target_types = {}
     asset_sales_mask = set()
     asset_target_delete = set()
+    tax_group_default_accounts = {}
 
     def split_key(key):
         val = key.split('/')
@@ -162,6 +163,10 @@ def configure_update():
                         asset_set.add(value)
                         asset_target_types[value] = 'Percent'
                         asset_target_values[value] = "0"
+                elif section == "default_tax_group_account":
+                    tax_group = subelement
+                    tax_group_default_accounts[tax_group] = value
+
             except Exception as ex:
                 print(ex)
                 pass
@@ -173,6 +178,7 @@ def configure_update():
 
             tax_group = account_map.get('tax_group')
             description = account_map.get('description')
+            is_default = tax_group_default_accounts.get(tax_group, '') == account
             
             if tax_group is None or tax_group == "IGNORE":
                 database.delete_account(user_token, account)
@@ -180,7 +186,8 @@ def configure_update():
                 database.add_account(user_token,
                                      account,
                                      description,
-                                     tax_group)
+                                     tax_group,
+                                     is_default)
 
         asset_targets = []
         for asset in asset_set:

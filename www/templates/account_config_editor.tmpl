@@ -53,3 +53,22 @@ tax_groups = list(database.get_tax_groups())
 </p>
 
 % end
+
+<h2>Default Accounts</h2>
+% for (tax_group, _) in tax_groups:
+
+<p>
+  <label for="default_tax_group_account/{{tax_group}}">{{tax_group}}: </label>
+  <select name="default_tax_group_account/{{tax_group}}">
+      <option value=""></option>
+  % for (account, _) in accounts.items():
+  % info = database.get_account_info(user_token, account)
+  % description = info.description if info is not None and info.description is not None else ''
+  % if info.tax_status == tax_group:
+      <option value="{{account}}" {{!'selected="selected"' if info.is_default != 0 else ''}}>{{description}}</option>
+  % end
+  % end
+  </select>
+</p>
+
+% end

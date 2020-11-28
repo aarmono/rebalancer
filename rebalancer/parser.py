@@ -2,6 +2,7 @@ from decimal import Decimal
 from csv import DictReader
 from collections import namedtuple
 from io import TextIOWrapper
+from itertools import filterfalse
 
 from .utils import is_sweep
 
@@ -26,6 +27,7 @@ def parse_file_object(file):
     AccountEntry = namedtuple('AccountEntry',
                               'account_name symbol share_price current_value is_sweep description shares is_credit')
     ret = []
+    account_sweeps = {}
     r = DictReader(file)
     for row in r:
         symbol = row["Symbol"]
@@ -37,6 +39,9 @@ def parse_file_object(file):
             symbol = description
 
         if symbol is not None and len(symbol) > 0:
+            if account not in account_sweeps:
+                account_sweeps[account] = False
+
             sweep = is_sweep(symbol)
             credit = symbol == "Pending Activity"
             symbol = symbol.replace('*', '')
@@ -56,7 +61,22 @@ def parse_file_object(file):
                                  shares,
                                  credit)
 
+            if sweep:
+                account_sweeps[account] = True
+
             ret.append(entry)
+
+    for (account, has_sweep) in filterfalse(lambda x: x[1], account_sweeps.items()):
+        entry = AccountEntry(account,
+                             "CORE",
+                             Decimal(1.0),
+                             Decimal(0.0),
+                             True,
+                             "Placeholder core account",
+                             Decimal(0.0),
+                             False)
+
+        ret.append(entry)
 
     return ret
 

@@ -14,7 +14,7 @@ from .utils import round_cents
 AssetTarget = namedtuple('AssetTarget', 'asset target target_type')
 AssetTaxGroup = namedtuple('AssetTaxGroup', 'asset tax_group')
 Security = namedtuple('Security', 'symbol asset asset_group')
-AccountInfo = namedtuple('AccountInfo', 'description tax_status')
+AccountInfo = namedtuple('AccountInfo', 'description tax_status is_default')
 IDEntry = namedtuple('IDEntry', 'name id')
 DefaultSecurity = namedtuple('DefaultSecurity', 'asset symbol')
 TargetType = namedtuple('TargetType', 'name abbreviation id')
@@ -25,7 +25,8 @@ AssetAffinity = namedtuple('AssetAffinity', 'asset tax_group priority')
 DB_UPGRADE_FILENAMES = [
     "rebalancer_v1.sql",
     "rebalancer_v2.sql",
-    "rebalancer_v3.sql"
+    "rebalancer_v3.sql",
+    "rebalancer_v4.sql"
 ]
 
 CURRENT_DB_VERSION = 1
@@ -39,13 +40,13 @@ def create_db_conn(database_path):
 def decrypt_account_info(val):
     (encrypted_info, description_key) = val
     if encrypted_info is not None:
-        (description, tax_group) = encrypted_info
+        (description, tax_group, is_default) = encrypted_info
 
         if description is not None:
             description = decrypt_account_description(description_key,
                                                       description)
 
-        return AccountInfo(description, tax_group)
+        return AccountInfo(description, tax_group, is_default)
     else:
         return None
 
@@ -221,7 +222,7 @@ class Database:
         cmd = "INSERT INTO UserSalts (User, Salt) VALUES (?, ?)"
         self.__return_one(str, cmd, user_hash, urandom(16).hex())
 
-    def add_account(self, user_token, account, description, tax_group):
+    def add_account(self, user_token, account, description, tax_group, is_default):
         hashed_account = self.__get_account_hash(user_token, account)
 
         encrypted_description = None
@@ -230,12 +231,13 @@ class Database:
             encrypted_description = encrypt_account_description(description_key,
                                                                 description)
 
-        cmd = "REPLACE INTO Accounts (ID, Description, TaxGroupID) VALUES (?, ?, (SELECT ID From TaxGroups WHERE Name == ?))"
+        cmd = "REPLACE INTO Accounts (ID, Description, TaxGroupID, IsDefault) VALUES (?, ?, (SELECT ID From TaxGroups WHERE Name == ?), ?)"
         self.__return_one(str,
                           cmd,
                           hashed_account,
                           encrypted_description,
-                          tax_group)
+                          tax_group,
+                          is_default)
 
     def delete_account(self, user_token, account):
         hashed_account = self.__get_account_hash(user_token, account)
@@ -255,7 +257,7 @@ class Database:
         hashed_accounts = map(partial(self.__get_account_hash, user_token),
                               accounts)
 
-        cmd = "SELECT Description, TaxGroup FROM AccountInfoMap WHERE AccountID = ?"
+        cmd = "SELECT Description, TaxGroup, IsDefault FROM AccountInfoMap WHERE AccountID = ?"
         encrypted_infos = map(partial(self.__return_one, tuple, cmd),
                               hashed_accounts)
         return decrypt_account_infos(encrypted_infos, account_keys)
@@ -263,17 +265,17 @@ class Database:
     def get_account_info(self, user_token, account):
         hashed_account = self.__get_account_hash(user_token, account)
 
-        cmd = "SELECT Description, TaxGroup FROM AccountInfoMap WHERE AccountID = ?"
+        cmd = "SELECT Description, TaxGroup, IsDefault FROM AccountInfoMap WHERE AccountID = ?"
         result = self.__return_one(tuple, cmd, hashed_account)
         if result is not None:
-            (description, tax_group) = result
+            (description, tax_group, is_default) = result
 
             if description is not None:
                 description_key = self.__get_account_key(user_token, account)
                 description = decrypt_account_description(description_key,
                                                           description)
 
-            return AccountInfo(description, tax_group)
+            return AccountInfo(description, tax_group, is_default)
         else:
             return None
 
