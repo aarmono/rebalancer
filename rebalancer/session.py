@@ -61,9 +61,9 @@ class Session:
                         current_value = account_entry.current_value
                         description = info.description if info.description is not None else account_entry.account_name
 
-                        if account_entry.is_sweep and info.is_default:
-                            current_value += credits[info.tax_status]
-                            credits[info.tax_status] = Decimal(0.0)
+                        if account_entry.is_sweep:
+                            current_value += credits[account_entry.account_name]
+                            del credits[account_entry.account_name]
 
                         self.__portfolio.add_position(description,
                                                       info.tax_status,
@@ -94,15 +94,16 @@ class Session:
 
     def __get_credit_dict(self, TaxStatus, database, taxable_credit, tax_deferred_credit):
         credits = defaultdict(Decimal)
-        if taxable_credit is not None:
-            credits[TaxStatus.TAXABLE] = taxable_credit
-        if tax_deferred_credit is not None:
-            credits[TaxStatus.TAX_DEFERRED] = tax_deferred_credit
 
         for account_entry in self.__account_entries:
             if account_entry.is_credit:
+                credits[account_entry.account_name] += account_entry.current_value
+            elif account_entry.is_sweep:
                 info = self.__get_account_info(database, account_entry.account_name)
-                if info is not None:
-                    credits[info.tax_status] += account_entry.current_value
+                if info is not None and info.is_default != 0:
+                    if taxable_credit is not None and info.tax_status == TaxStatus.TAXABLE:
+                        credits[account_entry.account_name] = taxable_credit
+                    elif tax_deferred_credit is not None and info.tax_status == TaxStatus.TAX_DEFERRED:
+                        credits[account_entry.account_name] = tax_deferred_credit
 
         return credits
