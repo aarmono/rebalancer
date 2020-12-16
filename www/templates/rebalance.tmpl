@@ -62,7 +62,7 @@ table, th, td {
 
     include('www/templates/portfolio.tmpl', portfolio=new_portfolio, title="New Portfolio Composition", n=1)
 
-    for (tax_status, assets) in new_portfolio.assets_by_tax_status().items():
+    for (tax_status, assets) in sorted(new_portfolio.assets_by_tax_status().items(), key=lambda x: x[0], reverse=True):
         tax_group_targets = targets_by_tax_group[tax_status]
         include('www/templates/portfolio.tmpl', portfolio=assets, target_values=None, target_percentages=None, title=tax_status, n=2)
     end
@@ -72,7 +72,7 @@ include('www/templates/portfolio.tmpl', portfolio=portfolio, title="Current Port
 
 if len(transactions_list) == 0:
 
-    for (tax_status, assets) in portfolio.assets_by_tax_status().items():
+    for (tax_status, assets) in sorted(portfolio.assets_by_tax_status().items(), key=lambda x: x[0], reverse=True):
         tax_group_targets = targets_by_tax_group[tax_status]
         include('www/templates/portfolio.tmpl', portfolio=assets, target_values=None, target_percentages=None, title=tax_status, n=2)
     end
