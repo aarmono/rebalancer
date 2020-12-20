@@ -317,7 +317,7 @@ INSERT INTO AssetGroups (ID, Name) VALUES (3, "Cash");
 
 INSERT INTO TaxGroups (ID, Name) VALUES (1, "Taxable");
 INSERT INTO TaxGroups (ID, Name) VALUES (2, "Tax Deferred");
-INSERT INTO TaxGroups (ID, Name) VALUES (3, "Roth");
+INSERT INTO TaxGroups (ID, Name) VALUES (3, "Tax Free");
 
 
 INSERT INTO Assets (ID, AssetGroupID, Abbreviation) VALUES (1, 1, "US TSM");
