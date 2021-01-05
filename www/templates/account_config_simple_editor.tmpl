@@ -36,9 +36,11 @@ tax_groups = list(database.get_tax_groups())
       <option value=""></option>
   % for account in accounts:
   % info = database.get_account_info(user_token, account)
-  % description = info.description if info is not None and info.description is not None else ''
+  % if info is not None:
+  % description = info.description if info.description is not None else account
   % if info.tax_status == tax_group:
       <option value="{{account}}" {{!'selected="selected"' if info.is_default != 0 else ''}}>{{description}}</option>
+  % end
   % end
   % end
   </select>
