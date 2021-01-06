@@ -69,7 +69,7 @@ def parse_file_object(file):
                              Decimal(1.0),
                              Decimal(0.0),
                              True,
-                             "Placeholder core account",
+                             "Core Account",
                              Decimal(0.0),
                              False)
 
