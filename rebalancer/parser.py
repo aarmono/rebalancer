@@ -20,6 +20,12 @@ def parse_file(file):
         with open(file, "r", encoding='utf-8-sig') as f:
             return parse_file_object(f)
 
+def get_account_number(row):
+    try:
+        return row["Account Number"]
+    except KeyError:
+        return row["Account Name/Number"]
+
 def parse_file_object(file):
     AccountEntry = namedtuple('AccountEntry',
                               'account_name symbol share_price current_value is_sweep description shares is_credit')
@@ -28,7 +34,7 @@ def parse_file_object(file):
     r = DictReader(file)
     for row in r:
         symbol = row["Symbol"]
-        account = row["Account Name/Number"]
+        account = get_account_number(row)
         description = row["Description"]
         # If there is no symbol (which happens with some 401(k) funds), try
         # to use the description as the symbol
