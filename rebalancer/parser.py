@@ -4,6 +4,8 @@ from collections import namedtuple
 from io import TextIOWrapper
 from itertools import filterfalse
 
+from .utils import CORE
+
 def parse_number_column(val, default=None):
     if default is None:
         return Decimal(val.replace(',', '').replace('$', ''))
@@ -40,7 +42,7 @@ def parse_file_object(file):
 
         if symbol is not None and len(symbol) > 0:
             credit = symbol == "Pending Activity"
-            symbol = 'CORE' if credit else symbol.replace('*', '')
+            symbol = CORE if credit else symbol.replace('*', '')
 
             unity = Decimal(1.0)
 

@@ -4,7 +4,7 @@ from decimal import Decimal
 from functools import partial
 
 from .db import Database
-from .utils import to_enum_name, is_mutual_fund
+from .utils import to_enum_name, is_mutual_fund, CORE
 from .crypto import hash_user_token, hash_account_name, decrypt_account_description
 from .parser import parse_file, parse_file_object
 from .securities import SecurityDatabase
@@ -72,7 +72,7 @@ class Session:
 
                         self.__portfolio.add_position(description,
                                                       account_info.tax_status,
-                                                      'CORE',
+                                                      CORE,
                                                       taxable_credit)
 
                     if tax_deferred_credit is not None and account_info.tax_status == TaxStatus.TAX_DEFERRED:
@@ -80,7 +80,7 @@ class Session:
 
                         self.__portfolio.add_position(description,
                                                       account_info.tax_status,
-                                                      'CORE',
+                                                      CORE,
                                                       tax_deferred_credit)
 
     def get_portfolio(self):

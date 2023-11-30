@@ -49,3 +49,5 @@ def get_token_from_file():
             user_token = f.read()
 
     return user_token
+
+CORE = 'CORE'
