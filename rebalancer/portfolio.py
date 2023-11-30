@@ -34,17 +34,20 @@ class Transaction:
 
 class Account:
     def __init__(self, security_db):
-        self.__positions = {}
-        self.__assets_to_symbols = {}
+        self.__positions = {'CORE' : Decimal(0.0)}
+        self.__assets_to_symbols = {'Cash' : 'CORE'}
         self.__security_db = security_db
 
     def add_position(self, symbol, value):
         if symbol in self.__positions:
-            raise KeyError("%s already exists in this Account" % (symbol))
+            self.__positions[symbol] = self.__positions[symbol] + value
         else:
             asset = self.__security_db.get_asset_class(symbol)
             if asset in self.__assets_to_symbols:
-                raise KeyError("%s asset already exists in this Account" % (asset))
+                if asset == 'Cash':
+                    self.__positions['CORE'] = self.__positions['CORE'] + value
+                else:
+                    raise KeyError("%s asset already exists in this Account" % (asset))
             else:
                 self.__assets_to_symbols[asset] = symbol
                 self.__positions[symbol] = value
@@ -176,11 +179,8 @@ class Account:
 
                 buy_amount += amount
 
-        if "Cash" not in self.__assets_to_symbols:
-            tmp_positions["CORE"] = Decimal(0.0)
-        else:
-            sweep = self.__assets_to_symbols["Cash"]
-            tmp_positions[sweep] += (sell_amount - buy_amount)
+        sweep = self.__assets_to_symbols["Cash"]
+        tmp_positions[sweep] += (sell_amount - buy_amount)
 
         for (symbol, position) in tmp_positions.items():
             account_copy.add_position(symbol, position)

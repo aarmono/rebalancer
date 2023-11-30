@@ -13,9 +13,6 @@ def is_mutual_fund(symbol):
     # Remove any asterisks which denote a sweep account
     return len(symbol.replace('*', '')) == 5
 
-def is_sweep(symbol):
-    return '*' in symbol
-
 def compute_percent_difference(current_value, target_value):
     if target_value != Decimal(0.0):
         difference = (current_value - target_value) / target_value
