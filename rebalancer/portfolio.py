@@ -3,7 +3,7 @@ from functools import reduce, partial
 from collections import defaultdict
 from math import ceil, floor
 
-from .utils import round_cents, to_dollars, is_mutual_fund
+from .utils import round_cents, to_dollars, is_mutual_fund, CORE
 from .balance import compute_asset_differences, compute_minimal_remainder_purchase
 
 class Transaction:
@@ -34,8 +34,8 @@ class Transaction:
 
 class Account:
     def __init__(self, security_db):
-        self.__positions = {'CORE' : Decimal(0.0)}
-        self.__assets_to_symbols = {'Cash' : 'CORE'}
+        self.__positions = {CORE : Decimal(0.0)}
+        self.__assets_to_symbols = {'Cash' : [CORE]}
         self.__security_db = security_db
 
     def add_position(self, symbol, value):
@@ -45,16 +45,24 @@ class Account:
             asset = self.__security_db.get_asset_class(symbol)
             if asset in self.__assets_to_symbols:
                 if asset == 'Cash':
-                    self.__positions['CORE'] = self.__positions['CORE'] + value
+                    self.__positions[CORE] = self.__positions[CORE] + value
                 else:
-                    raise KeyError("%s asset already exists in this Account" % (asset))
+                    self.__assets_to_symbols[asset].append(symbol)
+                    self.__positions[symbol] = value
             else:
-                self.__assets_to_symbols[asset] = symbol
+                self.__assets_to_symbols[asset] = [symbol]
                 self.__positions[symbol] = value
 
+    def __get_asset_symbol(self, asset):
+        # Throw KeyError when not found for compatability
+        symbol_list = self.__assets_to_symbols[asset]
+        symbol_list.sort(reverse=True, key=self.__positions.__getitem__)
+        # Return the symbol with the highest value
+        return symbol_list[0]
 
     def __getitem__(self, asset):
-        return self.__positions[self.__assets_to_symbols[asset]]
+        return sum(map(self.__positions.__getitem__, self.__assets_to_symbols[asset]),
+                   start=Decimal(0.0))
 
     def get_position_transactions(self,
                                   sell_asset_transactions,
@@ -63,7 +71,7 @@ class Account:
 
         available_funds = Decimal(0.0)
         for (asset, value) in sell_asset_transactions.items():
-            symbol = self.__assets_to_symbols[asset]
+            symbol = self.__get_asset_symbol(asset)
             position = self.__positions[symbol]
 
             shares = None
@@ -88,7 +96,7 @@ class Account:
             if asset not in self.__assets_to_symbols:
                 symbol = self.__security_db.get_reference_security(asset)
             else:
-                symbol = self.__assets_to_symbols[asset]
+                symbol = self.__get_asset_symbol(asset)
 
             cost_per_share = self.__security_db.get_current_price(symbol)
             shares = None
@@ -141,8 +149,9 @@ class Account:
         return ret
 
     def get(self, asset, default=None):
-        symbol = self.__assets_to_symbols.get(asset)
-        return self.__positions[symbol] if symbol is not None else default
+        symbols = self.__assets_to_symbols.get(asset)
+        return sum(map(self.__positions.__getitem__, symbols),
+                   start=Decimal(0.0)) if symbols is not None else default
 
     def current_value(self):
         return sum(self.__positions.values())
@@ -179,7 +188,7 @@ class Account:
 
                 buy_amount += amount
 
-        sweep = self.__assets_to_symbols["Cash"]
+        sweep = self.__get_asset_symbol('Cash')
         tmp_positions[sweep] += (sell_amount - buy_amount)
 
         for (symbol, position) in tmp_positions.items():
