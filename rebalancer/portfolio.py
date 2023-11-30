@@ -56,12 +56,11 @@ class Account:
     def __get_asset_symbol(self, asset):
         # Throw KeyError when not found for compatability
         symbol_list = self.__assets_to_symbols[asset]
-        symbol_list.sort(reverse=True, key=self.__positions.__getitem__)
-        # Return the symbol with the highest value
-        return symbol_list[0]
+        return max(symbol_list, key=self.__positions.__getitem__)
 
     def __getitem__(self, asset):
-        return sum(map(self.__positions.__getitem__, self.__assets_to_symbols[asset]),
+        return sum(map(self.__positions.__getitem__,
+                       self.__assets_to_symbols[asset]),
                    start=Decimal(0.0))
 
     def get_position_transactions(self,
