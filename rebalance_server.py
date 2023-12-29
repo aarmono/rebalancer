@@ -33,7 +33,7 @@ def rebalance():
         return "Must provide a portfolio csv file"
 
     name, ext = os.path.splitext(upload.filename)
-    if ext not in ('.csv'):
+    if ext not in ['.csv']:
         return 'File extension not allowed.'
 
     taxable_credit = None
