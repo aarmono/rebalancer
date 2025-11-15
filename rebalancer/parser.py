@@ -41,7 +41,7 @@ def parse_file_object(file):
             symbol = description
 
         if symbol is not None and len(symbol) > 0:
-            credit = symbol == "Pending Activity"
+            credit = symbol.casefold() == "Pending Activity".casefold()
             symbol = CORE if credit else symbol.replace('*', '')
 
             unity = Decimal(1.0)
